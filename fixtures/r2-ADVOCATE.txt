@@ -1,0 +1,14 @@
+REBUT B-2: Compression is testable and the best available calendar studies show total meeting hours fall roughly 15 percent under day bans rather than fully migrating; the objection assumes perfect substitution without evidence.
+REBUT C-5: An enforcement design already exists in common practice — calendar tooling declines Friday invites by default — so the 'unpriced enforcement' objection overstates the cost.
+
+ID: ADVOCATE-9
+SIDE: FOR
+CLAIM: Default-decline tooling makes the ban nearly self-enforcing.
+REASONING: Calendar systems can decline Friday invites automatically with an override log. Enforcement cost falls on software, not managers.
+DEFEATER: If override rates exceed half of attempted bookings, the default is theatre.
+
+ID: ADVOCATE-10
+SIDE: FOR
+CLAIM: The ban's value compounds through predictable scheduling culture.
+REASONING: Once everyone knows Fridays are free, planning horizons adapt. The benefit is the stable equilibrium, not any single quiet day.
+DEFEATER: Evidence that scheduling equilibria do not stabilise and exceptions steadily erode the norm.

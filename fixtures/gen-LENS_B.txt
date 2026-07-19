@@ -1,0 +1,47 @@
+ID: LENS_B-1
+SIDE: AGAINST
+CLAIM: Customers do not stop needing answers on Fridays.
+REASONING: External parties schedule reviews, escalations and closings on their calendars, not the vendor's. A ban makes the office harder to reach one day in five.
+DEFEATER: If external meetings are exempted, the customer-facing harm disappears.
+
+ID: LENS_B-2
+SIDE: AGAINST
+CLAIM: Cross-company projects lose a shared coordination day.
+REASONING: Partner firms often reserve Fridays for joint working sessions precisely because internal load is lighter. A ban removes the overlap window.
+DEFEATER: Calendar evidence that partner-facing sessions cluster on other days already.
+
+ID: LENS_B-3
+SIDE: FOR
+CLAIM: Support staff get one predictable day without being pulled into internal meetings.
+REASONING: Frontline staff are today double-booked between queues and internal syncs. A ban leaves them fully available to the people they serve.
+DEFEATER: If ticket data shows Friday internal meetings rarely pull support staff away, the gain is illusory.
+
+ID: LENS_B-4
+SIDE: AGAINST
+CLAIM: Interview candidates lose Friday slots, lengthening hiring.
+REASONING: Many candidates can only interview at the week's edge. Removing Friday panels stretches pipelines for everyone.
+DEFEATER: If interviews are exempt as external meetings, the objection is void.
+
+ID: LENS_B-5
+SIDE: FOR
+CLAIM: Families and carers gain schedule predictability.
+REASONING: A guaranteed no-meeting day lets third parties at home plan around it. The benefit lands on people who never attended the meetings at all.
+DEFEATER: If the ban increases Friday workload pressure instead, the predictability gain reverses.
+
+ID: LENS_B-6
+SIDE: AGAINST
+CLAIM: Contractors and agencies billing by the meeting lose access and revenue.
+REASONING: External specialists are engaged through scheduled sessions. One banned day in five is a 20 percent cut in engagement windows.
+DEFEATER: Evidence contractors reschedule within the week at no loss.
+
+ID: LENS_B-7
+SIDE: REFRAME
+CLAIM: The affected outsiders were never asked.
+REASONING: Customers, partners and candidates bear real costs of the policy but have no seat in the decision. The question should include their representation.
+DEFEATER: If external-facing meetings are exempt, outsiders are barely affected and need no seat.
+
+ID: LENS_B-8
+SIDE: FOR
+CLAIM: A specialist in customer success would add: fewer internal meetings shortens internal escalation chains.
+REASONING: When staff are not booked back-to-back, escalations reach owners the same day. Third parties see faster resolution, not slower.
+DEFEATER: Resolution-time data showing no Friday improvement at firms with the policy.

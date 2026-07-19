@@ -1,0 +1,14 @@
+REBUT B-6: The symptom-versus-disease objection ignores that cheap symptomatic relief with positive expected value is standard policy practice; waiting for cultural root-cause fixes has an unbounded timeline.
+REBUT A-4: The recruiting-perk claim is an efficiency-wage argument, but the perk is non-excludable across competitors and its signalling value decays to zero once common.
+
+ID: LENS_A-9
+SIDE: REFRAME
+CLAIM: The debate needs a stated discount rate for culture-change payoffs.
+REASONING: Ban benefits arrive immediately; cultural costs and adaptations arrive over quarters. Without a time preference the sides talk past each other.
+DEFEATER: Demonstration that both benefit and cost streams have the same time profile.
+
+ID: LENS_A-10
+SIDE: AGAINST
+CLAIM: Heterogeneous teams make the office the wrong pricing unit.
+REASONING: The efficient meeting quantity differs by an order of magnitude across functions. A uniform office rule guarantees allocative error somewhere.
+DEFEATER: Evidence that within-office variance in efficient meeting load is actually small.

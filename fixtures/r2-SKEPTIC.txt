@@ -1,0 +1,14 @@
+REBUT A-1: The deep-work claim cites a benefit measured in firms that chose the policy voluntarily; selection effects mean the protected-day gain cannot be transferred to a mandated setting.
+REBUT E-5: The predictability-for-families benefit assumes meeting-free means lighter workload, but the policy governs meetings, not hours; the inference is unsupported.
+
+ID: SKEPTIC-9
+SIDE: REFRAME
+CLAIM: Both camps are arguing from unmeasured baselines.
+REASONING: Nobody in this debate has stated current Friday meeting load. If Fridays are already light, the entire dispute is about a marginal change.
+DEFEATER: A baseline audit showing Friday meeting load is substantial.
+
+ID: SKEPTIC-10
+SIDE: REFRAME
+CLAIM: The reversibility of the policy is doing unexamined work on both sides.
+REASONING: If the ban is trivially reversible, opponents' harms are capped at one review cycle. If norms make it sticky, advocates' 'just try it' is disingenuous.
+DEFEATER: Documented cases showing such policies are reliably reversed when metrics disappoint.

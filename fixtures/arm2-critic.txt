@@ -1,0 +1,22 @@
+ID: CRITIC-1
+SIDE: AGAINST
+CLAIM: Legal and regulated-industry obligations may mandate same-day synchronous availability.
+REASONING: Broker-dealers, healthcare and emergency-service vendors carry response-time obligations that a calendar policy cannot override. The master list never addresses regulatory constraints.
+DEFEATER: If no role in this office carries such obligations, the argument is moot.
+
+ID: CRITIC-2
+SIDE: FOR
+CLAIM: A meeting-free day creates a natural window for maintenance, training and compliance work.
+REASONING: Recurring non-collaborative obligations are chronically displaced by meetings. A protected day gives them a home without new budget.
+DEFEATER: Evidence that such work is already completed on schedule despite meeting load.
+
+ID: CRITIC-3
+SIDE: REFRAME
+CLAIM: The policy's effect depends on remote-versus-office composition, which no entry states.
+REASONING: In a mostly remote office, meetings are the primary human contact and a ban has social costs; in a co-located office, hallway coordination substitutes freely. The master list argues as if composition were irrelevant.
+DEFEATER: Workforce data showing composition does not moderate the policy's measured effects.
+
+WEAKEST
+- M-2: the hygiene mechanism is asserted with no evidence and its own DEFEATER (pure migration) is the empirically likelier outcome.
+- M-5: rests on a single role's speculation about support-staff double-booking with no ticket data behind it.
+- M-10: mentoring loss assumes slots vanish rather than reschedule, which the entry's own DEFEATER concedes is testable and likely.

@@ -1,0 +1,71 @@
+ID: SOLO-1
+SIDE: FOR
+CLAIM: A meeting-free Friday protects deep work by removing calendar fragmentation.
+REASONING: Long uninterrupted stretches are the binding input for knowledge work. One guaranteed day changes the weekly equilibrium.
+DEFEATER: Evidence that fragmented calendars do not reduce measured output for most roles.
+
+ID: SOLO-2
+SIDE: FOR
+CLAIM: Constraining meeting supply forces justification of every remaining slot.
+REASONING: Scarcity pushes organisers to cut recurring low-value meetings first.
+DEFEATER: Calendar data showing meetings migrate wholesale to other days instead.
+
+ID: SOLO-3
+SIDE: FOR
+CLAIM: The ban accelerates a written, asynchronous decision culture.
+REASONING: When you cannot meet you must write, and written decisions are searchable later.
+DEFEATER: If decision quality measurably drops without live discussion, async is a poor substitute.
+
+ID: SOLO-4
+SIDE: FOR
+CLAIM: A fixed quiet day is fairer across time zones than rolling synchronous load.
+REASONING: Global teams burden someone's evening with every sync; one protected day spares all equally.
+DEFEATER: Timezone pain concentrates on few staff who might prefer a different remedy.
+
+ID: SOLO-5
+SIDE: AGAINST
+CLAIM: Coordination demand compresses into Monday-Thursday.
+REASONING: Total demand is unchanged; squeezing it into four days worsens the busiest days.
+DEFEATER: Calendar studies showing total meeting hours fall under day bans.
+
+ID: SOLO-6
+SIDE: AGAINST
+CLAIM: Customers and partners lose access one day in five.
+REASONING: External parties schedule on their own calendars; a hard ban forces staff to break policy or lose business.
+DEFEATER: An explicit exemption for external-facing meetings.
+
+ID: SOLO-7
+SIDE: AGAINST
+CLAIM: Incident response requires same-day synchronous coordination.
+REASONING: Escalations do not respect calendars; the ban is violated immediately or delays response.
+DEFEATER: An explicit incident-response exemption collapses the objection.
+
+ID: SOLO-8
+SIDE: AGAINST
+CLAIM: Coordination-heavy functions pay for focus-heavy functions' benefit.
+REASONING: Sales, support and program management run on synchronous contact; a uniform rule trades their output away.
+DEFEATER: Function-level data showing all teams gain net output under the ban.
+
+ID: SOLO-9
+SIDE: AGAINST
+CLAIM: An economist would add: a price mechanism dominates a quantity ban.
+REASONING: Meeting budgets let high-value meetings survive and kill low-value ones; bans cannot discriminate on value.
+DEFEATER: Transaction costs of a budget scheme exceeding its allocative gains.
+
+ID: SOLO-10
+SIDE: REFRAME
+CLAIM: 'Meeting' is undefined, so the proposition is not yet decidable.
+REASONING: A pairing session, a client call and a 40-person readout are different objects; a ban conflates them.
+DEFEATER: A policy text with a crisp operational definition.
+
+ID: SOLO-11
+SIDE: REFRAME
+CLAIM: The right decision procedure is a time-boxed pilot with pre-registered metrics.
+REASONING: The empirical disputes — compression, substitution, external harm — are all answerable by a cheap trial.
+DEFEATER: If pilot effects are contaminated or irreversible, the trial answers nothing.
+
+ID: SOLO-12
+SIDE: REFRAME
+CLAIM: A missing stakeholder — the customer — should have representation in the decision.
+REASONING: Outsiders bear real costs but have no seat; their response determines much of the policy's actual cost.
+DEFEATER: If external-facing meetings are exempt, outsiders are barely affected.

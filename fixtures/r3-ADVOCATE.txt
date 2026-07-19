@@ -1,0 +1,8 @@
+REBUT D-9: The invisible-channels rebuttal (chat replacing meetings) concedes the core FOR claim — scheduled fragmentation falls — and merely relocates a smaller residual; interruption telemetry where measured shows chat spikes decay within weeks.
+DEFEND ADVOCATE-9: Override-rate data from tooling vendors shows default-decline holds below 20 percent overrides, so the default is not theatre.
+
+ID: ADVOCATE-11
+SIDE: FOR
+CLAIM: The strongest surviving case is a bounded, exempted ban: internal recurring meetings only.
+REASONING: Every serious AGAINST entry attacks externals, incidents or peak functions. Scoping the ban to internal recurring slots keeps the deep-work gain and dodges each objection.
+DEFEATER: If internal recurring meetings are a minority of Friday load, the scoped ban protects little.

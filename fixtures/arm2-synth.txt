@@ -1,0 +1,144 @@
+ID: M-1
+SIDE: FOR
+CLAIM: A protected meeting-free day preserves deep work by removing calendar fragmentation.
+REASONING: Long uninterrupted stretches are the binding input for knowledge work. Three roles independently identified the same mechanism.
+DEFEATER: Evidence that fragmented calendars do not reduce measured output for most roles.
+CONV: 3
+SOURCES: ADVOCATE-1, ADVOCATE-2, LENS_A-4
+
+ID: M-2
+SIDE: FOR
+CLAIM: Scarcity of meeting days forces meeting hygiene on the remaining days.
+REASONING: Organisers must justify each slot when supply is constrained; recurring low-value meetings are cut first.
+DEFEATER: If meetings migrate to Monday-Thursday with no net reduction, the hygiene effect is zero.
+CONV: 1
+SOURCES: ADVOCATE-3
+
+ID: M-3
+SIDE: FOR
+CLAIM: The ban pushes decisions into written, searchable, auditable form.
+REASONING: When synchronous discussion is unavailable, written records substitute and persist.
+DEFEATER: If decision quality measurably drops without live discussion, async records are a poor substitute.
+CONV: 1
+SOURCES: ADVOCATE-5
+
+ID: M-4
+SIDE: FOR
+CLAIM: A collective rule solves the focus-time assurance problem individuals cannot solve alone.
+REASONING: Individually declined meetings still impose fragmentation through shared work; only a common rule changes the equilibrium. It doubles as a commitment device against over-booking bias.
+DEFEATER: Evidence that informal norms already protect focus blocks without a rule.
+CONV: 2
+SOURCES: LENS_A-4, LENS_A-7
+
+ID: M-5
+SIDE: FOR
+CLAIM: Frontline and support staff gain a predictable day fully available to the people they serve.
+REASONING: Staff are double-booked between queues and internal syncs today; a ban removes the internal half.
+DEFEATER: If ticket data shows Friday internal meetings rarely pull support staff away, the gain is illusory.
+CONV: 1
+SOURCES: LENS_B-3
+
+ID: M-6
+SIDE: AGAINST
+CLAIM: Coordination demand compresses into the remaining four days.
+REASONING: Total demand is unchanged; the same hours squeezed into busier days deepen fragmentation where it is worst.
+DEFEATER: Calendar data from firms with the policy showing total meeting hours actually fell.
+CONV: 1
+SOURCES: OPPONENT-2
+
+ID: M-7
+SIDE: AGAINST
+CLAIM: External counterparties — customers, partners, candidates, contractors — bear unpriced costs.
+REASONING: Outsiders schedule on their own calendars and lose access one day in five. Four roles' entries reduce to this same externality.
+DEFEATER: If external-facing meetings are exempted, the harm largely disappears.
+CONV: 2
+SOURCES: OPPONENT-5, LENS_B-1, LENS_B-2, LENS_B-4, LENS_B-6
+TESTED-NOTE: none
+
+ID: M-8
+SIDE: AGAINST
+CLAIM: A blanket ban punishes coordination-heavy functions to help focus-heavy ones.
+REASONING: Sales, support and program management run on synchronous contact; a uniform rule trades their effectiveness away, and efficient meeting load varies an order of magnitude across teams.
+DEFEATER: If per-function exemptions are allowed, the policy is no longer a ban and the cost disappears.
+CONV: 2
+SOURCES: OPPONENT-3, LENS_A-10
+
+ID: M-9
+SIDE: AGAINST
+CLAIM: Incidents and urgent decisions do not respect a calendar ban.
+REASONING: Escalations need same-day synchronous coordination; the ban is either violated immediately or delays response.
+DEFEATER: If the policy explicitly exempts incident response, this objection collapses.
+CONV: 1
+SOURCES: OPPONENT-1
+
+ID: M-10
+SIDE: AGAINST
+CLAIM: Junior staff lose scheduled access to seniors first.
+REASONING: Mentoring, reviews and unblocking happen in booked slots; cutting slots cuts the least powerful people's access.
+DEFEATER: Evidence that mentoring simply reschedules rather than disappears.
+CONV: 1
+SOURCES: OPPONENT-4
+
+ID: M-11
+SIDE: AGAINST
+CLAIM: The ban treats a symptom of bad meeting culture, which will resurface on four days.
+REASONING: Low-value meetings come from unclear owners and agendas; prohibition of a day does not touch the cause.
+DEFEATER: If the ban measurably reduces total low-value meeting hours, symptom relief is still real relief.
+CONV: 1
+SOURCES: OPPONENT-6
+
+ID: M-12
+SIDE: AGAINST
+CLAIM: Enforcement and compliance are recurring costs nobody has booked.
+REASONING: Exception requests, audits and disputes are ongoing labour that routinely exceeds first-year projections for blanket rules.
+DEFEATER: If enforcement is fully automated in calendar tooling, recurring cost approaches zero.
+CONV: 2
+SOURCES: OPPONENT-8, LENS_A-6
+
+ID: M-13
+SIDE: REFRAME
+CLAIM: The question is ill-posed until 'meeting' is operationally defined.
+REASONING: Pairing sessions, client calls and status readouts are different objects; any ban conflates them.
+DEFEATER: A policy text with a crisp operational definition of the banned object.
+CONV: 1
+SOURCES: SKEPTIC-1
+
+ID: M-14
+SIDE: REFRAME
+CLAIM: Ban-versus-no-ban is a false binary hiding a graded design space.
+REASONING: Meeting budgets, default-short slots, no-meeting mornings and approval thresholds all exist; a price mechanism in particular can discriminate on value where a quantity ban cannot.
+DEFEATER: Evidence the binary policy outperforms every graded alternative on the same metric.
+CONV: 2
+SOURCES: SKEPTIC-2, LENS_A-2
+
+ID: M-15
+SIDE: REFRAME
+CLAIM: Banning an input metric invites Goodhart substitution into meeting-like formats.
+REASONING: 'Working sessions' and huddles will replace meetings in name only; outcome metrics, not input metrics, should be targeted.
+DEFEATER: If outcome metrics improve alongside the input metric, the Goodhart worry is empirically idle.
+CONV: 2
+SOURCES: SKEPTIC-3, LENS_A-8
+
+ID: M-16
+SIDE: REFRAME
+CLAIM: The evidence base is selection-biased and the preference data unreliable.
+REASONING: Adopting firms differ systematically from non-adopters, and stated meeting preferences diverge from revealed behaviour.
+DEFEATER: A randomised or quasi-experimental study isolating the policy effect.
+CONV: 2
+SOURCES: SKEPTIC-4, SKEPTIC-8
+
+ID: M-17
+SIDE: REFRAME
+CLAIM: Decide by time-boxed reversible pilot, not permanent policy argument.
+REASONING: The rational move under uncertainty is a trial with pre-registered metrics; the permanent question is premature.
+DEFEATER: If switching costs make even a pilot effectively irreversible, the distinction dissolves.
+CONV: 1
+SOURCES: SKEPTIC-7
+
+ID: M-18
+SIDE: REFRAME
+CLAIM: The office may be the wrong decision level entirely.
+REASONING: Team-, department- and individual-level versions exist; office-wide framing smuggles in centralisation, and substitution elasticity should drive the choice.
+DEFEATER: A governance analysis showing office-level uniformity beats local choice here.
+CONV: 2
+SOURCES: SKEPTIC-6, LENS_A-5

@@ -1,0 +1,47 @@
+ID: LENS_A-1
+SIDE: FOR
+CLAIM: The marginal meeting has negative expected value once attendee time is priced.
+REASONING: Multiply attendance by loaded hourly cost and many recurring meetings visibly destroy value. A ban prunes the negative tail cheaply.
+DEFEATER: Portfolio data showing the Friday meeting mix is not disproportionately low-value.
+
+ID: LENS_A-2
+SIDE: AGAINST
+CLAIM: A price mechanism beats a quantity ban.
+REASONING: Charging organisers an internal meeting budget lets high-value meetings continue and kills low-value ones. Quantity bans cannot discriminate on value.
+DEFEATER: If transaction costs of running a meeting-budget scheme exceed its allocative gains, the blunt ban wins.
+
+ID: LENS_A-3
+SIDE: AGAINST
+CLAIM: Coordination has externalities a uniform ban ignores.
+REASONING: One team's cancelled sync delays three dependent teams. The ban prices none of these cross-team effects.
+DEFEATER: Dependency-mapping data showing Friday syncs sit on few critical paths.
+
+ID: LENS_A-4
+SIDE: FOR
+CLAIM: Focus time is a public good that individual scheduling under-provides.
+REASONING: Any one person accepting a meeting imposes fragmentation on shared work. A collective rule solves the assurance problem individuals cannot.
+DEFEATER: Evidence that informal norms already protect focus blocks without a rule.
+
+ID: LENS_A-5
+SIDE: REFRAME
+CLAIM: The relevant quantity is elasticity: how much meeting demand shifts versus disappears.
+REASONING: If demand mostly shifts to Thursday, welfare gain is near zero. The debate should centre on measured substitution rates.
+DEFEATER: A natural experiment measuring substitution close to zero would settle this against the reframe.
+
+ID: LENS_A-6
+SIDE: AGAINST
+CLAIM: Compliance and monitoring costs recur forever and compound.
+REASONING: Every exception request, audit and dispute is labour. Steady-state administrative cost routinely exceeds first-year projections for blanket rules.
+DEFEATER: If enforcement is fully automated in calendar tooling, recurring cost approaches zero.
+
+ID: LENS_A-7
+SIDE: FOR
+CLAIM: The policy is a cheap commitment device against time-inconsistent scheduling.
+REASONING: Organisations systematically over-book future weeks. A standing rule pre-commits against a bias everyone acknowledges.
+DEFEATER: Evidence that scheduling discipline can be achieved by defaults without prohibition.
+
+ID: LENS_A-8
+SIDE: REFRAME
+CLAIM: A specialist in labour economics would add: measure output, not meetings.
+REASONING: Hours in meetings is an input proxy with weak correlation to productivity. Policy should target measured output per team.
+DEFEATER: If output is unmeasurable at the team level in this firm, input proxies are all that is actionable.

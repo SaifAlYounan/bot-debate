@@ -1,0 +1,8 @@
+REBUT A-11: The scoped proposal is progress but confirms the original REFRAME — the debate was mis-specified from the start, and the house is now arguing my side.
+DEFEND SKEPTIC-9: Neither camp produced the baseline audit after a full round; the absence of that number remains the single most important fact in the debate.
+
+ID: SKEPTIC-11
+SIDE: REFRAME
+CLAIM: The decision should be a pre-registered 90-day pilot with named metrics and an automatic sunset.
+REASONING: Every unresolved empirical dispute in this transcript — compression, substitution, external harm — is answerable by a cheap trial. Deciding permanently on priors is malpractice.
+DEFEATER: If pilot contamination effects make 90-day results uninterpretable, the trial answers nothing.

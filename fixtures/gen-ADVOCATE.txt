@@ -1,0 +1,47 @@
+ID: ADVOCATE-1
+SIDE: FOR
+CLAIM: Banning Friday meetings protects a weekly block of deep work.
+REASONING: Knowledge work needs long uninterrupted stretches. A guaranteed meeting-free day removes the scheduling fragmentation that destroys them.
+DEFEATER: Evidence that fragmented calendars do not reduce measured output for most roles.
+
+ID: ADVOCATE-2
+SIDE: FOR
+CLAIM: Context switching around meetings costs more than the meetings themselves.
+REASONING: Each meeting imposes preparation and recovery overhead on every attendee. Removing one day of meetings removes a full day of that overhead.
+DEFEATER: A time-use study showing recovery overhead is trivially small in practice.
+
+ID: ADVOCATE-3
+SIDE: FOR
+CLAIM: A ban forces meeting hygiene on the other four days.
+REASONING: Scarcity makes organisers justify each slot. Recurring low-value meetings are the first to be cut.
+DEFEATER: If meetings simply migrate to Monday-Thursday with no net reduction, the hygiene effect is zero.
+
+ID: ADVOCATE-4
+SIDE: FOR
+CLAIM: Meeting-free Fridays are a cheap, visible recruiting and retention perk.
+REASONING: Candidates weigh predictable focus time. The policy costs nothing to announce and signals respect for makers' time.
+DEFEATER: Surveys showing candidates rank such perks far below pay and remote flexibility.
+
+ID: ADVOCATE-5
+SIDE: FOR
+CLAIM: The ban pushes teams toward written, asynchronous decision records.
+REASONING: When you cannot meet, you must write. Written decisions are searchable and auditable later.
+DEFEATER: If decision quality measurably drops without live discussion, async records are a poor substitute.
+
+ID: ADVOCATE-6
+SIDE: FOR
+CLAIM: A fixed no-meeting day is fairer across time zones.
+REASONING: Global teams burden someone's evening with every synchronous slot. One protected day spares everyone equally.
+DEFEATER: Timezone pain is concentrated on a few staff who might prefer a different remedy entirely.
+
+ID: ADVOCATE-7
+SIDE: FOR
+CLAIM: Fridays are the lowest-energy day, so the ban wastes the least collaboration value.
+REASONING: Attention and decision quality decline late in the week. Scheduling collaboration earlier aligns effort with energy.
+DEFEATER: Chronotype data showing no systematic Friday dip in this workforce.
+
+ID: ADVOCATE-8
+SIDE: FOR
+CLAIM: A specialist in operations would add: the ban simplifies room and calendar capacity planning.
+REASONING: Peak demand for rooms and video bridges flattens when one day is removed from contention.
+DEFEATER: If Friday demand simply shifts and raises Monday-Thursday peak load, capacity planning gets harder, not easier.

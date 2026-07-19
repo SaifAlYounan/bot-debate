@@ -1,0 +1,86 @@
+ID: M-1
+SIDE: FOR
+CLAIM: Banning Friday meetings protects a weekly block of deep work.
+REASONING: Knowledge work needs long uninterrupted stretches and a guaranteed free day removes scheduling fragmentation. Survived a selection-effect rebuttal via tooling override data.
+DEFEATER: Evidence that fragmented calendars do not reduce measured output for most roles.
+TESTED: yes
+
+ID: M-2
+SIDE: FOR
+CLAIM: Default-decline calendar tooling makes the ban nearly self-enforcing.
+REASONING: Software declines Friday invites with an override log, so enforcement cost falls on tooling rather than managers. Defended with vendor override-rate data below 20 percent.
+DEFEATER: If override rates exceed half of attempted bookings, the default is theatre.
+TESTED: yes
+
+ID: M-3
+SIDE: FOR
+CLAIM: A scoped ban on internal recurring meetings keeps the gains and dodges the main objections.
+REASONING: The serious AGAINST entries attack externals, incidents and peak functions. Scoping to internal recurring slots sidesteps each while preserving deep-work value.
+DEFEATER: If internal recurring meetings are a minority of Friday load, the scoped ban protects little.
+TESTED: yes
+
+ID: M-4
+SIDE: FOR
+CLAIM: A published no-meeting policy lets outsiders plan around the office honestly.
+REASONING: Predictable unavailability beats unpredictable unresponsiveness; partners adapt to stated rules.
+DEFEATER: Partner survey data preferring ad-hoc availability over a published dark day.
+
+ID: M-5
+SIDE: AGAINST
+CLAIM: Meetings compress into Monday-Thursday rather than disappearing.
+REASONING: Coordination demand is unchanged and mandated settings show near-full migration in the only controlled study. Survived the 15-percent-reduction counter, which rests on self-selected adopters.
+DEFEATER: Calendar data from mandated (not self-selected) bans showing total meeting hours fell.
+TESTED: yes
+
+ID: M-6
+SIDE: AGAINST
+CLAIM: The ban shifts real coordination into invisible channels.
+REASONING: Chat and ad-hoc calls replace scheduled meetings outside calendar metrics; reported hours fall while interruption load rises.
+DEFEATER: Interruption telemetry showing no rise in unscheduled synchronous contact on banned days.
+TESTED: yes
+
+ID: M-7
+SIDE: AGAINST
+CLAIM: External counterparties bear the costs with the least scheduling flexibility.
+REASONING: Customers, partners, candidates and contractors cannot reshuffle around an internal rule; the asymmetry was defended and never countered.
+DEFEATER: Evidence that external counterparties have equal or greater rescheduling flexibility.
+TESTED: yes
+
+ID: M-8
+SIDE: AGAINST
+CLAIM: A uniform office rule guarantees allocative error across heterogeneous teams.
+REASONING: Efficient meeting quantity varies by an order of magnitude across functions, and Friday is some functions' peak day.
+DEFEATER: Evidence that within-office variance in efficient meeting load is small.
+
+ID: M-9
+SIDE: AGAINST
+CLAIM: Policy churn itself is an unbooked cost of adopting the ban.
+REASONING: Adoption, exception litigation and probable repeal consume leadership attention and credibility. Survived a symmetry rebuttal only in magnitude, not direction.
+DEFEATER: Evidence that comparable policies stabilised with negligible churn cost.
+TESTED: yes
+
+ID: M-10
+SIDE: REFRAME
+CLAIM: A price mechanism (meeting budgets) beats a quantity ban.
+REASONING: Budgets let high-value meetings continue and kill low-value ones; the objection from transaction costs was asserted, never priced.
+DEFEATER: If budget-scheme transaction costs exceed its allocative gains, the blunt ban wins.
+TESTED: yes
+
+ID: M-11
+SIDE: REFRAME
+CLAIM: The decision should be a pre-registered, team-randomised 90-day pilot with automatic sunset.
+REASONING: Every unresolved empirical dispute in the transcript is answerable by a cheap randomised trial; deciding permanently on priors is malpractice.
+DEFEATER: If spillovers between treated and control teams are large, the pilot estimate is biased.
+TESTED: yes
+
+ID: M-12
+SIDE: REFRAME
+CLAIM: The debate is unmeasured at the baseline: current Friday meeting load is unknown.
+REASONING: If Fridays are already light the entire dispute concerns a marginal change; no participant produced the number after two rounds.
+DEFEATER: A baseline audit showing Friday meeting load is substantial.
+TESTED: yes
+
+GRAVEYARD
+- ADVOCATE-4 (recruiting perk): killed by REBUT — the perk is non-excludable across competitors and its signalling value decays to zero once common; no defence was offered.
+- LENS_B-5 (family predictability): killed by REBUT — the policy governs meetings, not hours, so the lighter-Friday inference is unsupported; no defence was offered.
+- OPPONENT-7 (autonomy erosion): killed by REBUT — teams demonstrably failed to protect focus time under autonomy, undermining the premise; no defence was offered.

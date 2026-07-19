@@ -1,0 +1,14 @@
+REBUT C-1: The definitional objection is overstated for external parties — customers experience 'the vendor did not take the call' identically under every definition of meeting.
+REBUT A-6: The timezone-fairness claim helps internal staff but actively hurts external partners in exactly the timezones whose overlap window is Friday.
+
+ID: LENS_B-9
+SIDE: AGAINST
+CLAIM: The ban exports coordination costs to the party with least flexibility.
+REASONING: Internal staff can reshuffle within the week; a customer with a Friday-only decision maker cannot. The cost lands on whoever has the least scheduling power.
+DEFEATER: Evidence that external counterparties have equal or greater rescheduling flexibility.
+
+ID: LENS_B-10
+SIDE: FOR
+CLAIM: A published no-meeting day lets outsiders plan around the office honestly.
+REASONING: Predictable unavailability beats unpredictable unresponsiveness. Partners adapt to a stated rule faster than to silent calendar chaos.
+DEFEATER: Partner survey data preferring ad-hoc availability over a published dark day.

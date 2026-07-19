@@ -1,0 +1,8 @@
+REBUT B-11: Policy churn cost is real but symmetric — retaining a bad status quo also consumes attention through the complaints channel; churn arguments cannot decide direction, only magnitude.
+DEFEND LENS_A-2: The meeting-budget alternative was never rebutted on the merits; the only response priced its transaction costs by assertion.
+
+ID: LENS_A-11
+SIDE: REFRAME
+CLAIM: The pilot should randomise at team level to identify the causal effect.
+REASONING: An office-wide pilot has no control group and will be confounded by seasonality. Team-level randomisation gives an unbiased estimate at the same cost.
+DEFEATER: If spillovers between treated and control teams are large, team-level randomisation is biased too.

@@ -1,0 +1,47 @@
+ID: SKEPTIC-1
+SIDE: REFRAME
+CLAIM: The question is undefined until 'meeting' is defined.
+REASONING: A two-person pairing session, a client call and a 40-person status readout are different objects. Any ban conflates them and produces incoherent enforcement.
+DEFEATER: A policy text with a crisp operational definition of the banned object.
+
+ID: SKEPTIC-2
+SIDE: REFRAME
+CLAIM: Ban-versus-no-ban is a false binary.
+REASONING: Meeting budgets, default-25-minute slots, no-meeting mornings and approval thresholds all exist. Framing it as Friday prohibition hides the real design space.
+DEFEATER: Evidence the binary policy outperforms every graded alternative on the same metric.
+
+ID: SKEPTIC-3
+SIDE: REFRAME
+CLAIM: The proposal optimises an input metric, inviting Goodhart effects.
+REASONING: Meeting hours are an input, not an outcome. Banning an input predictably spawns substitutes: 'working sessions', huddles, calls that are meetings in all but name.
+DEFEATER: If outcome metrics improve alongside the input metric, the Goodhart worry is empirically idle.
+
+ID: SKEPTIC-4
+SIDE: REFRAME
+CLAIM: Cited focus-time studies rarely survive selection-effect scrutiny.
+REASONING: Firms that adopt meeting-free days differ systematically from firms that do not. Their before-after gains cannot be read as the policy's causal effect.
+DEFEATER: A randomised or quasi-experimental study isolating the policy effect.
+
+ID: SKEPTIC-5
+SIDE: REFRAME
+CLAIM: Nobody has said who enforces the ban or what a violation costs.
+REASONING: A rule without an enforcement mechanism is a slogan. A rule with one has costs nobody has priced.
+DEFEATER: A published enforcement design whose costs are visibly below the claimed benefits.
+
+ID: SKEPTIC-6
+SIDE: REFRAME
+CLAIM: 'Should offices ban' presumes the office is the right decision level.
+REASONING: Team-level, department-level and individual-level versions of the policy exist. The question smuggles in centralisation before argument starts.
+DEFEATER: A governance analysis showing office-level uniformity beats local choice here.
+
+ID: SKEPTIC-7
+SIDE: REFRAME
+CLAIM: A pilot is being debated as if it were a permanent policy.
+REASONING: The rational move under uncertainty is a time-boxed reversible trial with pre-registered metrics. Arguing the permanent question first is premature.
+DEFEATER: If switching costs make even a pilot effectively irreversible, the distinction dissolves.
+
+ID: SKEPTIC-8
+SIDE: REFRAME
+CLAIM: A specialist in survey methodology would add: employee-preference data on meetings is systematically unreliable.
+REASONING: Stated preferences about meetings diverge from revealed scheduling behaviour. Both sides quote surveys that cannot bear the weight.
+DEFEATER: A preference elicitation with real stakes that replicates the survey result.
