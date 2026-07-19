@@ -1,0 +1,47 @@
+ID: LENS_A-1
+SIDE: FOR
+CLAIM: Priced at loaded hourly cost, the marginal recurring meeting destroys value.
+REASONING: Multiply attendance by cost and the negative tail is visible; a ban prunes it cheaply.
+DEFEATER: Portfolio data showing the Friday mix is not disproportionately low-value.
+
+ID: LENS_A-2
+SIDE: AGAINST
+CLAIM: A price mechanism dominates a quantity ban.
+REASONING: Internal meeting budgets let high-value meetings continue and kill low-value ones; bans cannot discriminate on value.
+DEFEATER: Transaction costs of the budget scheme exceeding its allocative gains.
+
+ID: LENS_A-3
+SIDE: FOR
+CLAIM: Focus time is a public good that individual scheduling under-provides.
+REASONING: Any one person accepting a meeting imposes fragmentation on shared work; a collective rule solves the assurance problem.
+DEFEATER: Evidence that informal norms already protect focus blocks.
+
+ID: LENS_A-4
+SIDE: AGAINST
+CLAIM: A uniform office rule guarantees allocative error across heterogeneous teams.
+REASONING: Efficient meeting quantity varies by an order of magnitude across functions.
+DEFEATER: Evidence that within-office variance in efficient meeting load is small.
+
+ID: LENS_A-5
+SIDE: REFRAME
+CLAIM: Measured substitution elasticity should decide the question.
+REASONING: If demand mostly shifts to Thursday the welfare gain is near zero; the debate should centre on that number.
+DEFEATER: A natural experiment measuring substitution near zero.
+
+ID: LENS_A-6
+SIDE: AGAINST
+CLAIM: Compliance and monitoring costs recur forever.
+REASONING: Every exception, audit and dispute is labour; steady-state administration routinely exceeds projections.
+DEFEATER: Fully automated calendar enforcement approaching zero recurring cost.
+
+ID: LENS_A-7
+SIDE: FOR
+CLAIM: A specialist in labour economics would add: target measured output, not meeting hours.
+REASONING: Meeting hours are an input proxy weakly correlated with productivity.
+DEFEATER: If team output is unmeasurable here, input proxies are all that is actionable.
+
+ID: LENS_A-8
+SIDE: REFRAME
+CLAIM: The debate needs a stated discount rate for culture-change payoffs.
+REASONING: Ban benefits arrive immediately; adaptations and costs arrive over quarters, so the sides talk past each other without a time preference.
+DEFEATER: Demonstration that both streams share a time profile.

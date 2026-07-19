@@ -1,0 +1,95 @@
+ID: M-1
+SIDE: FOR
+CLAIM: A protected meeting-free day preserves deep work by removing calendar fragmentation.
+REASONING: Long uninterrupted stretches are the binding input for knowledge work; a fixed quiet day changes the weekly equilibrium and compounds as planning adapts.
+DEFEATER: Evidence that fragmented calendars do not reduce measured output for most roles.
+CONV: 2
+SOURCES: ADVOCATE-1, LENS_A-3
+
+ID: M-2
+SIDE: FOR
+CLAIM: Scarcity of meeting days forces justification of every remaining slot.
+REASONING: Recurring low-value meetings are cut first when supply is constrained.
+DEFEATER: Calendar data showing meetings migrate wholesale to Monday-Thursday instead.
+CONV: 1
+SOURCES: ADVOCATE-2
+
+ID: M-3
+SIDE: FOR
+CLAIM: The ban pushes decisions into written, searchable, auditable form.
+REASONING: When synchronous discussion is unavailable, written records substitute and persist.
+DEFEATER: If decision quality measurably drops without live discussion, async records are a poor substitute.
+CONV: 1
+SOURCES: ADVOCATE-3
+
+ID: M-4
+SIDE: FOR
+CLAIM: Default-decline tooling makes the ban nearly self-enforcing.
+REASONING: Calendar software declines Friday invites automatically with an override log; enforcement cost falls on tooling, which also caps recurring compliance cost.
+DEFEATER: If override rates exceed half of attempted bookings, the default is theatre.
+CONV: 1
+SOURCES: ADVOCATE-5
+
+ID: M-5
+SIDE: FOR
+CLAIM: A fixed quiet day is fairer across time zones and more predictable for outsiders and families.
+REASONING: Rolling syncs burden someone's evening every time; a published dark day spares all equally and lets third parties plan.
+DEFEATER: Partner surveys preferring ad-hoc availability over a published dark day.
+CONV: 3
+SOURCES: ADVOCATE-4, LENS_B-4, LENS_B-5
+
+ID: M-6
+SIDE: AGAINST
+CLAIM: Coordination demand compresses into the remaining four days.
+REASONING: Total demand is unchanged; squeezing it into busier days deepens fragmentation where it is worst.
+DEFEATER: Calendar data from firms with the policy showing total meeting hours fell.
+CONV: 1
+SOURCES: OPPONENT-1
+
+ID: M-7
+SIDE: AGAINST
+CLAIM: External counterparties bear unpriced costs with the least scheduling power.
+REASONING: Customers, partners, candidates and contractors lose access one day in five and cannot reshuffle around an internal rule.
+DEFEATER: An exemption for external-facing meetings removes most of the harm.
+CONV: 3
+SOURCES: OPPONENT-3, LENS_B-1, LENS_B-2, LENS_B-3, LENS_B-8
+
+ID: M-8
+SIDE: AGAINST
+CLAIM: A uniform rule punishes coordination-heavy functions and guarantees allocative error.
+REASONING: Sales, support and program management run on synchronous contact; efficient meeting load varies an order of magnitude across teams.
+DEFEATER: If per-function exemptions are allowed, the policy is no longer a ban.
+CONV: 2
+SOURCES: OPPONENT-4, LENS_A-4
+
+ID: M-9
+SIDE: AGAINST
+CLAIM: Incidents need same-day synchronous coordination that a ban delays or violates.
+REASONING: Escalations do not respect calendars.
+DEFEATER: An explicit incident-response exemption collapses the objection.
+CONV: 1
+SOURCES: OPPONENT-2
+
+ID: M-10
+SIDE: AGAINST
+CLAIM: Coordination shifts into invisible channels no calendar metric sees.
+REASONING: Chat and ad-hoc calls replace meetings; reported hours fall while interruption load rises.
+DEFEATER: Interruption telemetry showing no rise in unscheduled synchronous contact on banned days.
+CONV: 1
+SOURCES: OPPONENT-5
+
+ID: M-11
+SIDE: REFRAME
+CLAIM: The question is ill-posed until 'meeting' is defined and the graded design space is on the table.
+REASONING: Bans, budgets, short defaults and no-meeting mornings are different instruments; a price mechanism can discriminate on value where a quantity ban cannot.
+DEFEATER: Evidence the binary ban beats every graded alternative on the same metric.
+CONV: 3
+SOURCES: SKEPTIC-1, SKEPTIC-2, LENS_A-2
+
+ID: M-12
+SIDE: REFRAME
+CLAIM: Decide by time-boxed pilot with pre-registered metrics, at the right organisational level.
+REASONING: The empirical disputes are answerable by a cheap reversible trial, and the office may be the wrong decision level entirely.
+DEFEATER: If pilot effects are contaminated or irreversible, the trial answers nothing.
+CONV: 2
+SOURCES: SKEPTIC-5, SKEPTIC-6

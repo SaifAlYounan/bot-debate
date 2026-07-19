@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""argbench — three-architecture argument-mapping benchmark.
+"""argbench — four-architecture argument-mapping benchmark.
 
 CLI + pipeline. See config.yaml for models/prices and report.py for the
 HTML rendering (which works from the run directory on disk alone).
 
-Design is frozen: ARM 1 debate (shared transcript), ARM 2 exam+examiner
-(isolated), ARM 3 solo control. Round-1 generations are produced once and
-reused by arms 1 and 2 (paired design); their cost is attributed to BOTH
-arms in the accounting.
+Arms: ARM 1 debate (shared transcript), ARM 2 exam+examiner (isolated),
+ARM 3 solo control, ARM 4 persona control (the solo model plays every
+role through the arm-2 topology, disentangling vendor diversity from
+topology). Round-1 generations are produced once and reused by arms 1
+and 2 (paired design); their cost is attributed to BOTH arms in the
+accounting. Arm 4 generates its own (single-model) round.
 """
 
 import argparse
@@ -105,7 +107,7 @@ SHARED FORMAT:
 TRANSCRIPT:
 {transcript}"""
 
-JUDGE_PROMPT = """You are judging three anonymous systems, SYSTEM-A, SYSTEM-B and SYSTEM-C. Each tried to produce the most complete map of distinct, grounded arguments on one question. You do not know what the systems are. Judge only what is on the page.
+JUDGE_PROMPT = """You are judging four anonymous systems, SYSTEM-A, SYSTEM-B, SYSTEM-C and SYSTEM-D. Each tried to produce the most complete map of distinct, grounded arguments on one question. You do not know what the systems are. Judge only what is on the page.
 
 Question: {question}
 
@@ -118,13 +120,16 @@ SYSTEM-B:
 SYSTEM-C:
 {list_c}
 
+SYSTEM-D:
+{list_d}
+
 Tasks:
-1) Build the union of semantically distinct arguments across the three lists. Two entries count as the same argument only if their core claim is the same. For each union argument give: id "U-n"; theme (2-4 words); side (FOR, AGAINST or REFRAME); short_claim (max 12 words); found_in listing which of A, B, C contain that same core claim (strictly by same core claim).
+1) Build the union of semantically distinct arguments across the four lists. Two entries count as the same argument only if their core claim is the same. For each union argument give: id "U-n"; theme (2-4 words); side (FOR, AGAINST or REFRAME); short_claim (max 12 words); found_in listing which of A, B, C, D contain that same core claim (strictly by same core claim).
 2) For each system: distinct (how many union arguments it contains), unique (how many union arguments only it contains), suspect (how many of its entries have REASONING or DEFEATER text that invents facts, cases, statistics or authorities), depth (1-5: are its DEFEATERs specific and falsifiable), notes (short; name suspect entries by their ID and say why).
-3) verdict: 2-3 sentences comparing the three systems, blind.
+3) verdict: 2-3 sentences comparing the four systems, blind.
 
 Output STRICT JSON only, no markdown fences, no prose outside the JSON, exactly this schema:
-{{"union":[{{"id":"U-1","theme":"...","side":"FOR","short_claim":"...","found_in":["A","C"]}}],"per_system":{{"A":{{"distinct":0,"unique":0,"suspect":0,"depth":0,"notes":"..."}},"B":{{}},"C":{{}}}},"verdict":"..."}}"""
+{{"union":[{{"id":"U-1","theme":"...","side":"FOR","short_claim":"...","found_in":["A","C"]}}],"per_system":{{"A":{{"distinct":0,"unique":0,"suspect":0,"depth":0,"notes":"..."}},"B":{{}},"C":{{}},"D":{{}}}},"verdict":"..."}}"""
 
 JUDGE_REPAIR_PROMPT = """Your previous output was not valid JSON matching the required schema.
 Problems: {errors}
@@ -132,7 +137,7 @@ Problems: {errors}
 Output ONLY the corrected JSON object. No markdown fences, no prose.
 
 Required schema:
-{{"union":[{{"id":"U-1","theme":"...","side":"FOR","short_claim":"...","found_in":["A","C"]}}],"per_system":{{"A":{{"distinct":0,"unique":0,"suspect":0,"depth":0,"notes":"..."}},"B":{{}},"C":{{}}}},"verdict":"..."}}
+{{"union":[{{"id":"U-1","theme":"...","side":"FOR","short_claim":"...","found_in":["A","C"]}}],"per_system":{{"A":{{"distinct":0,"unique":0,"suspect":0,"depth":0,"notes":"..."}},"B":{{}},"C":{{}},"D":{{}}}},"verdict":"..."}}
 
 Previous output:
 {previous}"""
@@ -212,7 +217,7 @@ class RunContext(object):
         self.phase_walls = {}
         self.warnings = []
         self.failed_calls = []
-        for sub in ("gen", "arm1", "arm2", "arm3", "judge"):
+        for sub in ("gen", "arm1", "arm2", "arm3", "arm4", "judge"):
             os.makedirs(os.path.join(run_dir, sub), exist_ok=True)
 
     def role_description(self, role):
@@ -385,18 +390,49 @@ def render_contribution(text, source_round, mappings, current_round, roles):
     return text
 
 
-def render_transcript(history, mappings, current_round, roles, anonymise):
-    """history: list of {round, role, text} in chronological order."""
+def render_transcript(history, mappings, current_round, roles):
+    """Anonymised transcript for debate rounds.
+    history: list of {round, role, text} in chronological order."""
     parts = []
     for h in history:
-        if anonymise:
-            who = "Participant " + mappings[current_round][h["role"]]
-            body = render_contribution(h["text"], h["round"], mappings,
-                                       current_round, roles)
-        else:
-            who = h["role"]
-            body = h["text"]
+        who = "Participant " + mappings[current_round][h["role"]]
+        body = render_contribution(h["text"], h["round"], mappings,
+                                   current_round, roles)
         parts.append("=== %s (round %d) ===\n%s" % (who, h["round"], body))
+    return "\n\n".join(parts)
+
+
+def deanonymise_contribution(text, source_round, mappings):
+    """Translate participant letters an agent wrote under round-k's mapping
+    back to role names. Needed for the debate-synth editor: without it the
+    transcript mixes role-name headers with letter references (e.g.
+    'REBUT B-6') whose letters mean different roles in different rounds,
+    making rebuttal targets unresolvable."""
+    if source_round < 2 or source_round not in mappings:
+        return text
+    letter_to_role = {v: k for k, v in mappings[source_round].items()}
+
+    def sub_id(m):
+        r = letter_to_role.get(m.group(1))
+        return (r + "-" + m.group(2)) if r else m.group(0)
+
+    def sub_part(m):
+        r = letter_to_role.get(m.group(1))
+        return ("Participant " + r) if r else m.group(0)
+
+    text = re.sub(r"\b([A-H])-(\d+)\b", sub_id, text)
+    text = re.sub(r"\bParticipant ([A-H])\b", sub_part, text)
+    return text
+
+
+def render_transcript_for_editor(history, mappings):
+    """Fully de-anonymised transcript (role-name headers AND role-name
+    rebuttal references) for the debate-synth editor."""
+    parts = []
+    for h in history:
+        body = deanonymise_contribution(h["text"], h["round"], mappings)
+        parts.append("=== %s (round %d) ===\n%s"
+                     % (h["role"], h["round"], body))
     return "\n\n".join(parts)
 
 
@@ -457,7 +493,7 @@ def phase_arm1(ctx, gen_outputs):
 
             def one(role, rr=r):
                 transcript = render_transcript(history, mappings, rr,
-                                               ctx.roles, anonymise=True)
+                                               ctx.roles)
                 entry = ctx.roster_for(role)
                 text = ctx.call(
                     arm="arm1", phase="round%d" % rr, role=role,
@@ -478,8 +514,7 @@ def phase_arm1(ctx, gen_outputs):
             history.extend(round_outputs)
 
     with ctx.timed_phase("arm1_synth"):
-        transcript_plain = render_transcript(history, mappings, 0, ctx.roles,
-                                             anonymise=False)
+        transcript_plain = render_transcript_for_editor(history, mappings)
         ed = ctx.cfg["editor"]
         final = ctx.call(
             arm="arm1", phase="synth", role="EDITOR",
@@ -495,31 +530,34 @@ def phase_arm1(ctx, gen_outputs):
     return final
 
 
-def phase_arm2(ctx, gen_outputs):
+def exam_tail(ctx, gen_outputs, arm):
+    """The exam+examiner tail shared by arms 2 and 4: editor synthesis with
+    CONV:k tags, then a gap critic that sees ONLY the master list, appended
+    mechanically. Same editor model in both arms (fairness invariant)."""
     p = ctx.cfg["params"]
     ed = ctx.cfg["editor"]
     lists = "\n\n".join("--- LIST FROM %s ---\n%s" % (role, text)
                         for role, text in gen_outputs.items())
-    with ctx.timed_phase("arm2_synth"):
+    with ctx.timed_phase(arm + "_synth"):
         master = ctx.call(
-            arm="arm2", phase="synth", role="EDITOR",
+            arm=arm, phase="synth", role="EDITOR",
             provider=ed["provider"], model=ed["model"],
             prompt=SYNTH_PROMPT.format(
                 n=len(gen_outputs), question=ctx.question,
                 shared_format=SHARED_FORMAT, lists=lists),
-            name="arm2-synth", subdir="arm2",
+            name=arm + "-synth", subdir=arm,
             temperature=p["editor_temperature"],
             max_tokens=p["editor_max_tokens"])
     if master is None:
         return None
-    with ctx.timed_phase("arm2_critic"):
+    with ctx.timed_phase(arm + "_critic"):
         critic = ctx.call(
-            arm="arm2", phase="critic", role="EDITOR",
+            arm=arm, phase="critic", role="EDITOR",
             provider=ed["provider"], model=ed["model"],
             prompt=CRITIC_PROMPT.format(
                 question=ctx.question, shared_format=SHARED_FORMAT,
                 master=master),
-            name="arm2-critic", subdir="arm2",
+            name=arm + "-critic", subdir=arm,
             temperature=p["editor_temperature"],
             max_tokens=p["editor_max_tokens"])
     # mechanical append, no rewriting
@@ -528,8 +566,43 @@ def phase_arm2(ctx, gen_outputs):
         final = (master
                  + "\n\n=== GAP CRITIC ADDITIONS (appended mechanically, "
                    "not edited) ===\n" + critic)
-    write_text(os.path.join(ctx.run_dir, "arm2", "final.txt"), final)
+    write_text(os.path.join(ctx.run_dir, arm, "final.txt"), final)
     return final
+
+
+def phase_arm2(ctx, gen_outputs):
+    return exam_tail(ctx, gen_outputs, "arm2")
+
+
+def phase_arm4(ctx):
+    """ARM 4 — PERSONA CONTROL: the solo model plays every role through the
+    exact arm-2 topology (isolated generation, then editor + gap critic).
+    Its generations are its OWN (not the shared GEN, which uses the diverse
+    roster): arm4 vs arm3 isolates persona-splitting, arm2 vs arm4 isolates
+    vendor diversity, arm1 vs arm2 isolates the debate transcript."""
+    p = ctx.cfg["params"]
+    solo = ctx.cfg["solo"]
+
+    def one(role):
+        text = ctx.call(
+            arm="arm4", phase="gen", role=role,
+            provider=solo["provider"], model=solo["model"],
+            prompt=generator_prompt(ctx, role), name="arm4-gen-" + role,
+            subdir="arm4",
+            temperature=p["gen_temperature"],
+            max_tokens=p["gen_max_tokens"])
+        return role, text
+
+    outputs = {}
+    with ctx.timed_phase("arm4_gen"):
+        with ThreadPoolExecutor(max_workers=len(ctx.roles)) as pool:
+            for role, text in pool.map(one, ctx.roles):
+                if text is not None:
+                    outputs[role] = text
+    if not outputs:
+        ctx.note("arm4 FAILED: all persona-control generation calls failed")
+        return None
+    return exam_tail(ctx, outputs, "arm4")
 
 
 def phase_arm3(ctx):
@@ -577,14 +650,14 @@ def validate_judge_json(data):
                 errs.append("union[%d].side must be FOR|AGAINST|REFRAME" % i)
             fi = u.get("found_in")
             if (not isinstance(fi, list) or not fi
-                    or not set(fi) <= {"A", "B", "C"}):
+                    or not set(fi) <= {"A", "B", "C", "D"}):
                 errs.append("union[%d].found_in must be a non-empty subset "
-                            "of [A,B,C]" % i)
+                            "of [A,B,C,D]" % i)
     ps = data.get("per_system")
-    if not isinstance(ps, dict) or not {"A", "B", "C"} <= set(ps):
-        errs.append("per_system must contain A, B and C")
+    if not isinstance(ps, dict) or not {"A", "B", "C", "D"} <= set(ps):
+        errs.append("per_system must contain A, B, C and D")
     else:
-        for s in ("A", "B", "C"):
+        for s in ("A", "B", "C", "D"):
             e = ps[s]
             if not isinstance(e, dict):
                 errs.append("per_system.%s is not an object" % s)
@@ -633,16 +706,16 @@ def phase_judge(ctx, finals):
                    "judging skipped: missing final lists: %s" % missing)
         return None
 
-    arms = ["arm1", "arm2", "arm3"]
+    arms = ["arm1", "arm2", "arm3", "arm4"]
     ctx.rng.shuffle(arms)
-    blind = dict(zip(["A", "B", "C"], arms))  # letter -> arm
+    blind = dict(zip(["A", "B", "C", "D"], arms))  # letter -> arm
     write_text(os.path.join(ctx.run_dir, "judge", "blind_mapping.json"),
                json.dumps(blind, indent=2))
 
     prompt = JUDGE_PROMPT.format(
         question=ctx.question,
         list_a=finals[blind["A"]], list_b=finals[blind["B"]],
-        list_c=finals[blind["C"]])
+        list_c=finals[blind["C"]], list_d=finals[blind["D"]])
 
     with ctx.timed_phase("judge"):
         text = ctx.call(
@@ -678,14 +751,14 @@ def phase_judge(ctx, finals):
 
     # sanity-check the judge's arithmetic: recompute distinct/unique from
     # the union matrix and prefer the recomputed values
-    recomputed = {s: {"distinct": 0, "unique": 0} for s in "ABC"}
+    recomputed = {s: {"distinct": 0, "unique": 0} for s in "ABCD"}
     for u in data["union"]:
         fi = sorted(set(u["found_in"]))
         for s in fi:
             recomputed[s]["distinct"] += 1
         if len(fi) == 1:
             recomputed[fi[0]]["unique"] += 1
-    for s in "ABC":
+    for s in "ABCD":
         for k in ("distinct", "unique"):
             claimed = data["per_system"][s].get(k)
             if claimed != recomputed[s][k]:
@@ -838,15 +911,20 @@ def preflight_estimate(cfg, question, context, roles, rounds, roster):
     arm2 = price(ed_model, base + n * gmax, emax) \
          + price(ed_model, base + emax, emax)
     solo_cost = price(cfg["solo"]["model"], base + 100, gmax)
-    judge_cost = price(cfg["judge"]["model"], base + 3 * emax, jmax)
+    solo_model = cfg["solo"]["model"]
+    arm4 = n * price(solo_model, base, gmax) \
+         + price(ed_model, base + n * gmax, emax) \
+         + price(ed_model, base + emax, emax)
+    judge_cost = price(cfg["judge"]["model"], base + 4 * emax, jmax)
 
     est = {
         "arm1 (debate)":   gen_cost + arm1,
         "arm2 (exam)":     gen_cost + arm2,
         "arm3 (solo)":     solo_cost,
+        "arm4 (persona)":  arm4,
         "judge":           judge_cost,
     }
-    actual_total = gen_cost + arm1 + arm2 + solo_cost + judge_cost
+    actual_total = gen_cost + arm1 + arm2 + solo_cost + arm4 + judge_cost
     return est, actual_total, unknown
 
 
@@ -940,18 +1018,20 @@ def execute_run(run_dir, cfg, args, question, context, roles, lens_a, lens_b,
     write_text(os.path.join(run_dir, "config_resolved.yaml"),
                yaml.safe_dump(resolved, sort_keys=False))
 
-    print("\n[1/6] shared GEN round (counted into arms 1 AND 2)")
+    print("\n[1/7] shared GEN round (counted into arms 1 AND 2)")
     gen_outputs = phase_gen(ctx)
-    print("[2/6] arm 3 — solo control")
+    print("[2/7] arm 3 — solo control")
     final3 = phase_arm3(ctx)
-    print("[3/6] arm 2 — exam + examiner tail")
+    print("[3/7] arm 4 — persona control (solo model, exam topology)")
+    final4 = phase_arm4(ctx)
+    print("[4/7] arm 2 — exam + examiner tail")
     final2 = phase_arm2(ctx, gen_outputs)
-    print("[4/6] arm 1 — debate rounds 2..%d + synthesis" % rounds)
+    print("[5/7] arm 1 — debate rounds 2..%d + synthesis" % rounds)
     final1 = phase_arm1(ctx, gen_outputs)
-    print("[5/6] blind judge")
+    print("[6/7] blind judge")
     judge_data = phase_judge(ctx, {"arm1": final1, "arm2": final2,
-                                   "arm3": final3})
-    print("[6/6] metrics + report")
+                                   "arm3": final3, "arm4": final4})
+    print("[7/7] metrics + report")
 
     meta = {
         "run_id": os.path.basename(run_dir),
@@ -1054,9 +1134,7 @@ def main(argv=None):
     notes = []
     roster = resolve_roster(cfg, roles, notes)
     cfg["_resolved_roster"] = roster
-    overlap = check_judge_provider(cfg, roster, args.force or args.mock, notes)
-    if args.mock and overlap:
-        pass  # mock judge trivially overlaps the mock roster; fine offline
+    check_judge_provider(cfg, roster, args.force or args.mock, notes)
     for n in notes:
         warn(n)
 

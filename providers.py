@@ -11,7 +11,9 @@ import json
 import os
 import random
 import re
+import shutil
 import subprocess
+import tempfile
 import time
 
 import requests
@@ -199,16 +201,33 @@ def _call_claude_cli(model, prompt, system, temperature, max_tokens,
     the CLI already retries transient API errors internally.
     """
     cmd = ["claude", "-p", "--output-format", "json", "--tools", "",
-           "--no-session-persistence", "--model", model,
-           "--system-prompt", system]
+           "--no-session-persistence", "--strict-mcp-config",
+           "--model", model, "--system-prompt", system]
     env = dict(os.environ)
     env["CLAUDE_CODE_MAX_OUTPUT_TOKENS"] = str(max_tokens)
+    # Isolation: run from a fresh empty directory so the CLI cannot pick up
+    # CLAUDE.md, project memory, or a repo's git status from wherever
+    # argbench was invoked; --strict-mcp-config (with no --mcp-config given)
+    # disables all configured MCP servers. A small CLI-injected preamble
+    # still exists and is NOT captured in the saved prompt files — the
+    # report carries a caveat; use executor=api for strict reproducibility.
+    workdir = tempfile.mkdtemp(prefix="argbench-cli-")
+    try:
+        return _run_claude_cli(cmd, prompt, model, max_tokens, max_retries,
+                               env, workdir)
+    finally:
+        shutil.rmtree(workdir, ignore_errors=True)
+
+
+def _run_claude_cli(cmd, prompt, model, max_tokens, max_retries, env,
+                    workdir):
     last_err = "unknown error"
     for attempt in range(max_retries + 1):
         t0 = time.monotonic()
         try:
             proc = subprocess.run(cmd, input=prompt, capture_output=True,
-                                  text=True, timeout=CLI_TIMEOUT_S, env=env)
+                                  text=True, timeout=CLI_TIMEOUT_S, env=env,
+                                  cwd=workdir)
         except subprocess.TimeoutExpired:
             last_err = "claude CLI timed out after %ds" % CLI_TIMEOUT_S
             continue

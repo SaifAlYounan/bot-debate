@@ -1,0 +1,47 @@
+ID: LENS_B-1
+SIDE: AGAINST
+CLAIM: Customers do not stop needing answers on Fridays.
+REASONING: External parties schedule reviews and escalations on their calendars, not the vendor's; the office becomes harder to reach one day in five.
+DEFEATER: An exemption for external meetings removes the harm.
+
+ID: LENS_B-2
+SIDE: AGAINST
+CLAIM: Cross-company projects lose a shared coordination window.
+REASONING: Partner firms often reserve Fridays for joint sessions precisely because internal load is lighter.
+DEFEATER: Calendar evidence that partner sessions already cluster on other days.
+
+ID: LENS_B-3
+SIDE: AGAINST
+CLAIM: Candidates and contractors lose Friday slots, stretching pipelines and engagements.
+REASONING: Many external people can only engage at the week's edge.
+DEFEATER: Treating interviews and contractor sessions as exempt external meetings.
+
+ID: LENS_B-4
+SIDE: FOR
+CLAIM: A published no-meeting day lets outsiders plan around the office honestly.
+REASONING: Predictable unavailability beats unpredictable unresponsiveness; partners adapt to stated rules.
+DEFEATER: Partner surveys preferring ad-hoc availability over a published dark day.
+
+ID: LENS_B-5
+SIDE: FOR
+CLAIM: Families and carers gain schedule predictability.
+REASONING: A guaranteed no-meeting day lets third parties at home plan around it.
+DEFEATER: If the ban raises Friday workload pressure, the predictability gain reverses.
+
+ID: LENS_B-6
+SIDE: REFRAME
+CLAIM: The affected outsiders were never asked.
+REASONING: Customers, partners and candidates bear real costs but have no seat in the decision.
+DEFEATER: If external-facing meetings are exempt, outsiders are barely affected.
+
+ID: LENS_B-7
+SIDE: FOR
+CLAIM: A specialist in customer success would add: fewer internal meetings shorten escalation chains.
+REASONING: Unbooked staff reach owners the same day, so third parties see faster resolution.
+DEFEATER: Resolution-time data showing no Friday improvement under the policy.
+
+ID: LENS_B-8
+SIDE: AGAINST
+CLAIM: The ban exports coordination costs to whoever has least scheduling power.
+REASONING: Internal staff can reshuffle within the week; a customer with a Friday-only decision maker cannot.
+DEFEATER: Evidence that external counterparties reschedule as easily as internal staff.

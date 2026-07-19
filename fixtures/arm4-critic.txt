@@ -1,0 +1,16 @@
+ID: CRITIC-1
+SIDE: AGAINST
+CLAIM: Regulated roles may carry response-time obligations a calendar policy cannot override.
+REASONING: Broker-dealers, healthcare and emergency-service vendors have mandated same-day availability. The master list never addresses regulatory constraints.
+DEFEATER: If no role in this office carries such obligations, the argument is moot.
+
+ID: CRITIC-2
+SIDE: REFRAME
+CLAIM: The policy's effect depends on remote-versus-office composition, which no entry states.
+REASONING: In a mostly remote office meetings are the primary human contact; in a co-located office hallway coordination substitutes freely.
+DEFEATER: Workforce data showing composition does not moderate the measured effects.
+
+WEAKEST
+- M-2: the hygiene mechanism is asserted with no evidence and its own DEFEATER (pure migration) is the likelier outcome.
+- M-3: async-decision quality is assumed, not shown, and the entry ignores the transition cost of building a writing culture.
+- M-9: fully answered by its own DEFEATER; as written it argues for an exemption, not against the ban.

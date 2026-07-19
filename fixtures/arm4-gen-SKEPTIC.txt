@@ -1,0 +1,47 @@
+ID: SKEPTIC-1
+SIDE: REFRAME
+CLAIM: The proposition is undecidable until 'meeting' is operationally defined.
+REASONING: A pairing session, a client call and a 40-person readout are different objects; any ban conflates them.
+DEFEATER: A policy text with a crisp operational definition of the banned object.
+
+ID: SKEPTIC-2
+SIDE: REFRAME
+CLAIM: Ban-versus-no-ban is a false binary hiding a graded design space.
+REASONING: Meeting budgets, short-default slots, no-meeting mornings and approval thresholds all exist between the poles.
+DEFEATER: Evidence the binary beats every graded alternative on the same metric.
+
+ID: SKEPTIC-3
+SIDE: REFRAME
+CLAIM: Banning an input metric invites Goodhart substitution.
+REASONING: 'Working sessions' and huddles will replace meetings in name only; outcomes, not inputs, should be targeted.
+DEFEATER: Outcome metrics improving alongside the input metric would idle the worry.
+
+ID: SKEPTIC-4
+SIDE: REFRAME
+CLAIM: The evidence base is selection-biased.
+REASONING: Firms that adopt meeting-free days differ systematically from those that do not; before-after gains are not causal effects.
+DEFEATER: A randomised or quasi-experimental study isolating the policy effect.
+
+ID: SKEPTIC-5
+SIDE: REFRAME
+CLAIM: The decision should be a time-boxed reversible pilot with pre-registered metrics.
+REASONING: Every empirical dispute here is answerable by a cheap trial; deciding permanently on priors is premature.
+DEFEATER: If switching costs make even a pilot effectively irreversible, the distinction dissolves.
+
+ID: SKEPTIC-6
+SIDE: REFRAME
+CLAIM: The office may be the wrong decision level entirely.
+REASONING: Team-, department- and individual-level versions exist; office-wide framing smuggles in centralisation.
+DEFEATER: A governance analysis showing office-level uniformity beats local choice.
+
+ID: SKEPTIC-7
+SIDE: REFRAME
+CLAIM: Nobody has priced enforcement or named the enforcer.
+REASONING: A rule without a mechanism is a slogan; a rule with one has costs no one has booked.
+DEFEATER: A published enforcement design with costs visibly below claimed benefits.
+
+ID: SKEPTIC-8
+SIDE: REFRAME
+CLAIM: A specialist in survey methodology would add: stated meeting preferences are unreliable.
+REASONING: Stated preferences diverge from revealed scheduling behaviour, so both camps' surveys carry little weight.
+DEFEATER: A preference elicitation with real stakes replicating the survey result.
