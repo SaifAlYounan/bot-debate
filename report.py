@@ -410,6 +410,17 @@ def render_run_report(run_dir):
         "single-model round and is not sampling-paired with arms 1/2."
         % _fmt(m["total_cost_usd"], "usd").lstrip("$"),
     ]
+    solo_cfg = cfg.get("solo", {}) or {}
+    ed_cfg = cfg.get("editor", {}) or {}
+    if solo_cfg.get("model") == ed_cfg.get("model") \
+            or solo_cfg.get("provider") == ed_cfg.get("provider"):
+        caveats.append(
+            "Arm 4's persona generations and the editor share a "
+            "model/provider (%s/%s vs %s/%s): arm 4's result includes a "
+            "same-model consistency component, not pure persona-splitting "
+            "— read arm 4 vs arm 3 with that in mind."
+            % (esc(solo_cfg.get("provider")), esc(solo_cfg.get("model")),
+               esc(ed_cfg.get("provider")), esc(ed_cfg.get("model"))))
     if cfg.get("executor") == "claude_cli":
         caveats.append(
             "Anthropic calls used the claude_cli executor: the CLI injects "
