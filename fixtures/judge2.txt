@@ -150,30 +150,63 @@
    "distinct": 8,
    "unique": 1,
    "suspect": 1,
-   "depth": 3,
-   "notes": "Suspect: one entry cites vendor override-rate data 'below 20 percent' with no identifiable source \u2014 treated as an invented statistic. Defeaters otherwise specific and falsifiable."
+   "suspect_entries": [
+    {
+     "id": "E-8",
+     "quote": "efficient meeting load varies an order of magnitude across teams",
+     "why": "An order-of-magnitude claim presented as established with no cited measurement."
+    }
+   ],
+   "depth": 2,
+   "notes": "Broad coverage but defeaters frequently restate the claim rather than name disconfirming evidence; one unsourced quantitative premise."
   },
   "B": {
-   "distinct": 10,
+   "distinct": 9,
    "unique": 1,
-   "suspect": 0,
+   "suspect": 1,
+   "suspect_entries": [
+    {
+     "id": "E-12",
+     "quote": "routinely exceeds first-year projections for blanket rules",
+     "why": "A recurring empirical regularity asserted as measured, with no source for the projection data."
+    }
+   ],
    "depth": 4,
-   "notes": "No invented facts detected. Defeaters consistently name the dataset that would falsify the claim; convergence tags aid auditability."
+   "notes": "Widest map with concrete defeaters, but one entry asserts a cost regularity as if measured."
   },
   "C": {
    "distinct": 8,
    "unique": 1,
-   "suspect": 2,
-   "depth": 2,
-   "notes": "Suspect: one entry asserts 'the only controlled study' without naming it; another claims a 15 percent reduction figure with no source. Several defeaters are generic restatements."
+   "suspect": 1,
+   "suspect_entries": [
+    {
+     "id": "E-1",
+     "quote": "the binding input for knowledge work",
+     "why": "Sweeping empirical premise stated without evidence."
+    }
+   ],
+   "depth": 3,
+   "notes": "Compact and coherent; one unsupported foundational premise; defeaters mostly specific."
   },
   "D": {
    "distinct": 7,
    "unique": 1,
-   "suspect": 1,
+   "suspect": 2,
+   "suspect_entries": [
+    {
+     "id": "E-2",
+     "quote": "vendor override-rate data below 20 percent",
+     "why": "Vendor figure with no vendor, product or dataset named."
+    },
+    {
+     "id": "E-5",
+     "quote": "near-full migration in the only controlled study",
+     "why": "Appeals to a single unnamed controlled study."
+    }
+   ],
    "depth": 3,
-   "notes": "Suspect: one entry claims administrative costs 'routinely exceed projections' as if measured, with no source. Voice is notably homogeneous across roles; defeaters adequate but repetitive."
+   "notes": "Battle-tested entries with clear kill records, but two rest on unnamed data sources."
   }
  },
- "verdict": "System B produced the broadest and best-grounded map, with the most distinct arguments and the most falsifiable defeaters. Systems A and D cover similar ground with one unsourced statistic each, D reading as a single voice wearing different hats. System C spans the widest rhetorical range but grounds its claims least carefully."
+ "verdict": "System B is the most complete and best-defended map despite one unsourced cost claim. Systems A and C are close behind with one unsupported premise each; A's defeaters are weaker than C's. System D is the narrowest and depends twice on unnamed data."
 }

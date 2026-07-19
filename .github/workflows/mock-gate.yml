@@ -13,6 +13,10 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install requests pyyaml
+      # Offline unit tests: adapter parsing, retry/fallback logic, CLI
+      # cap-hit detection, sanitisation, quote anchoring — all stubbed,
+      # zero network.
+      - run: python3 -m unittest discover -s tests -v
       # Offline, zero-network, no secrets. The pipeline's own mock
       # self-check exits non-zero on any regression in the accounting,
       # judge audit trail, or failure-mode fixtures.

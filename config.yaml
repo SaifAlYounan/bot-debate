@@ -5,26 +5,27 @@
 # with your provider API keys exported to see what is available, then
 # replace every SET_ME below.
 #
-# Executor for Anthropic calls.
-# For benchmark runs you intend to quote, prefer `api`: the claude_cli
-# executor injects a small machine-local preamble that is not captured in
-# the saved p-*.txt prompts (calls run from an empty directory with MCP
-# disabled to minimise it, and the report carries a caveat).
-#   claude_cli (default) — shells out to `claude -p` on your existing
-#                          Claude Code auth; exact usage from the CLI JSON.
-#                          NOTE: temperature is not settable through the CLI
-#                          (recorded as null). max_tokens is enforced via
-#                          CLAUDE_CODE_MAX_OUTPUT_TOKENS, and the CLI does
-#                          NOT truncate at the cap: a cap-hit is detected
-#                          (via usage.iterations) and the call is marked
-#                          FAILED, because the CLI would otherwise silently
-#                          drop the earlier part of the text. Rule of thumb:
-#                          set max_tokens 30-50% above what you would use
-#                          with the direct API; use executor=api for true
-#                          truncation semantics.
-#   api                  — direct HTTPS to the Anthropic Messages API,
+# Executor for Anthropic calls. The default is `api` because it is the
+# reproducible choice: exact prompts on disk, settable temperature, true
+# truncation semantics.
+#   api        (default) — direct HTTPS to the Anthropic Messages API,
 #                          requires ANTHROPIC_API_KEY.
-executor: claude_cli
+#   claude_cli           — opt-in convenience: shells out to `claude -p` on
+#                          your existing Claude Code auth; exact usage from
+#                          the CLI JSON. Trade-offs (each recorded per call
+#                          and stamped as a report caveat): the CLI injects
+#                          a small machine-local preamble not captured in
+#                          the saved p-*.txt prompts (calls run from an
+#                          empty directory with MCP disabled to minimise
+#                          it); temperature is not settable (recorded as
+#                          null); max_tokens is enforced via
+#                          CLAUDE_CODE_MAX_OUTPUT_TOKENS and the CLI does
+#                          NOT truncate at the cap — a cap-hit is detected
+#                          (via usage.iterations) and the call is marked
+#                          FAILED rather than silently losing text. Rule of
+#                          thumb: set max_tokens 30-50% above what you
+#                          would use with the direct API.
+executor: api
 
 # Roles are fixed: ADVOCATE, OPPONENT, SKEPTIC, LENS_A, LENS_B
 # (lens descriptions are supplied at intake). The roster is identical for
@@ -46,9 +47,22 @@ editor: {provider: anthropic, model: SET_ME}
 # so arm 3 vs arm 4 stays a minimal pair.
 solo: {provider: anthropic, model: SET_ME}
 
-# The judge must come from a provider NOT in the generation roster.
-# If it overlaps, argbench refuses to run without --force and the report
+# Every judge must come from a provider NOT in the generation roster.
+# If any overlaps, argbench refuses to run without --force and the report
 # carries a self-preference caveat.
+#
+# `judge` may be a single entry or a LIST — a panel. With a panel, every
+# judge scores the same sanitised blinded lists; the scoreboard uses the
+# per-metric MEDIAN across judges, per-judge outputs and the min-max
+# spread are reported, and a disagreement on the headline winner is
+# stamped as a caveat. Prefer 3 judges for runs you intend to quote.
+# Practical note: with the full 5-provider roster above, xai is the only
+# supported provider left outside the roster, so a diverse panel means
+# either several distinct xai models or a --quick (3-role) roster that
+# frees providers for judging.
+# judge:
+#   - {provider: xai, model: SET_ME}
+#   - {provider: xai, model: SET_ME_2}
 judge: {provider: xai, model: SET_ME}
 
 params:
@@ -60,7 +74,9 @@ params:
   judge_max_tokens: 8000
 
 # Per-model prices in USD per million tokens. Used for all dollar figures.
-# Keep as_of current; the report footer prints
+# Keep as_of current (ISO date, e.g. 2026-07-19): argbench warns loudly —
+# and stamps a report caveat — when as_of is missing, unparseable, or more
+# than 90 days old. The report footer prints
 # "prices as of <date>, verify before quoting externally".
 prices:
   as_of: SET_ME

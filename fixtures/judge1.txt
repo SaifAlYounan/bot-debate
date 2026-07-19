@@ -1,0 +1,211 @@
+{
+ "union": [
+  {
+   "id": "U-1",
+   "theme": "deep work",
+   "side": "FOR",
+   "short_claim": "Protected day preserves deep work from fragmentation",
+   "found_in": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ]
+  },
+  {
+   "id": "U-2",
+   "theme": "compression",
+   "side": "AGAINST",
+   "short_claim": "Meetings compress into the other four days",
+   "found_in": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ]
+  },
+  {
+   "id": "U-3",
+   "theme": "external parties",
+   "side": "AGAINST",
+   "short_claim": "Customers and partners lose access one day in five",
+   "found_in": [
+    "A",
+    "B",
+    "C",
+    "D"
+   ]
+  },
+  {
+   "id": "U-4",
+   "theme": "decision procedure",
+   "side": "REFRAME",
+   "short_claim": "Decide by time-boxed pre-registered pilot",
+   "found_in": [
+    "A",
+    "B",
+    "C"
+   ]
+  },
+  {
+   "id": "U-5",
+   "theme": "meeting hygiene",
+   "side": "FOR",
+   "short_claim": "Scarcity forces justification of remaining meetings",
+   "found_in": [
+    "A",
+    "B",
+    "D"
+   ]
+  },
+  {
+   "id": "U-6",
+   "theme": "async culture",
+   "side": "FOR",
+   "short_claim": "Ban pushes decisions into written form",
+   "found_in": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "id": "U-7",
+   "theme": "function heterogeneity",
+   "side": "AGAINST",
+   "short_claim": "Uniform rule punishes coordination-heavy functions",
+   "found_in": [
+    "B",
+    "C"
+   ]
+  },
+  {
+   "id": "U-8",
+   "theme": "invisible channels",
+   "side": "AGAINST",
+   "short_claim": "Coordination shifts into untracked chat and calls",
+   "found_in": [
+    "C",
+    "D"
+   ]
+  },
+  {
+   "id": "U-9",
+   "theme": "price mechanism",
+   "side": "REFRAME",
+   "short_claim": "Meeting budgets dominate a quantity ban",
+   "found_in": [
+    "A",
+    "C"
+   ]
+  },
+  {
+   "id": "U-10",
+   "theme": "enforcement",
+   "side": "FOR",
+   "short_claim": "Default-decline tooling makes ban self-enforcing",
+   "found_in": [
+    "A"
+   ]
+  },
+  {
+   "id": "U-11",
+   "theme": "regulation",
+   "side": "AGAINST",
+   "short_claim": "Regulated roles may mandate same-day availability",
+   "found_in": [
+    "B"
+   ]
+  },
+  {
+   "id": "U-12",
+   "theme": "timezone fairness",
+   "side": "FOR",
+   "short_claim": "Fixed quiet day is fairer across time zones",
+   "found_in": [
+    "C"
+   ]
+  },
+  {
+   "id": "U-13",
+   "theme": "remote composition",
+   "side": "REFRAME",
+   "short_claim": "Effect depends on remote-versus-office composition",
+   "found_in": [
+    "D"
+   ]
+  },
+  {
+   "id": "U-14",
+   "theme": "incident response",
+   "side": "AGAINST",
+   "short_claim": "Incidents need same-day synchronous coordination",
+   "found_in": [
+    "B",
+    "D"
+   ]
+  }
+ ],
+ "per_system": {
+  "A": {
+   "distinct": 8,
+   "unique": 1,
+   "suspect": 1,
+   "suspect_entries": [
+    {
+     "id": "E-8",
+     "quote": "efficient meeting load varies an order of magnitude across teams",
+     "why": "Quantitative spread stated as fact with no source or measurement."
+    }
+   ],
+   "depth": 3,
+   "notes": "One entry states a cross-team quantitative spread as measured fact with no source. Defeaters otherwise specific and falsifiable."
+  },
+  "B": {
+   "distinct": 10,
+   "unique": 1,
+   "suspect": 0,
+   "suspect_entries": [],
+   "depth": 4,
+   "notes": "No invented facts detected. Defeaters consistently name the dataset that would falsify the claim."
+  },
+  "C": {
+   "distinct": 8,
+   "unique": 1,
+   "suspect": 2,
+   "suspect_entries": [
+    {
+     "id": "E-1",
+     "quote": "the binding input for knowledge work",
+     "why": "Strong empirical claim about what binds knowledge-work output, asserted without any evidence."
+    },
+    {
+     "id": "E-5",
+     "quote": "meeting hours fell 42 percent in a Helsinki municipal pilot",
+     "why": "Specific study result cited with no source."
+    }
+   ],
+   "depth": 2,
+   "notes": "Asserts strong empirical premises without sources; several defeaters are generic restatements."
+  },
+  "D": {
+   "distinct": 7,
+   "unique": 1,
+   "suspect": 2,
+   "suspect_entries": [
+    {
+     "id": "E-2",
+     "quote": "vendor override-rate data below 20 percent",
+     "why": "Vendor statistic cited with no identifiable vendor or dataset."
+    },
+    {
+     "id": "E-5",
+     "quote": "near-full migration in the only controlled study",
+     "why": "Claims a unique controlled study without naming it."
+    }
+   ],
+   "depth": 3,
+   "notes": "Two entries lean on unnamed data: a vendor override-rate figure and an unnamed controlled study. Defeaters adequate but repetitive."
+  }
+ },
+ "verdict": "System B produced the broadest and best-grounded map, with the most distinct arguments and the most falsifiable defeaters. Systems A and D cover similar ground but each leans on unsourced quantitative claims, D twice. System C spans a wide rhetorical range while grounding its premises least carefully."
+}

@@ -18,6 +18,7 @@ import json
 import os
 import random
 import re
+import statistics
 import sys
 import threading
 import time
@@ -29,7 +30,8 @@ import providers
 import report as report_mod
 
 # ---------------------------------------------------------------------------
-# verbatim prompt building blocks (frozen — do not edit)
+# verbatim prompt building blocks — change only in sync with the blinding
+# and judge-schema code below (sanitize_for_judge, validate_judge_json)
 # ---------------------------------------------------------------------------
 
 SHARED_FORMAT = """Output only argument entries, nothing else. Each entry:
@@ -47,7 +49,9 @@ DEBATE_INSTRUCTION = ("You are in round {r} of a structured moot. Rebut "
                       "<ID>: <reason>. Refine or defend your own positions. "
                       "Add NEW entries the other participants missed, in "
                       "SHARED FORMAT. Do not state agreement without adding "
-                      "a new reason.")
+                      "a new reason. Refer to yourself and to others only "
+                      "as Participant <letter>; never mention any role or "
+                      "persona name in your text.")
 
 SOLO_PROMPT = ("You are one analyst mapping ALL arguments on: {proposition}. "
                "Context: {context}. Work in passes: (1) obvious arguments on "
@@ -125,11 +129,11 @@ SYSTEM-D:
 
 Tasks:
 1) Build the union of semantically distinct arguments across the four lists. Two entries count as the same argument only if their core claim is the same. For each union argument give: id "U-n"; theme (2-4 words); side (FOR, AGAINST or REFRAME); short_claim (max 12 words); found_in listing which of A, B, C, D contain that same core claim (strictly by same core claim).
-2) For each system: distinct (how many union arguments it contains), unique (how many union arguments only it contains), suspect (how many of its entries have REASONING or DEFEATER text that invents facts, cases, statistics or authorities), depth (1-5: are its DEFEATERs specific and falsifiable), notes (short; name suspect entries by their ID and say why).
+2) For each system: distinct (how many union arguments it contains), unique (how many union arguments only it contains), suspect (how many of its entries have CLAIM, REASONING or DEFEATER text that invents facts, cases, statistics or authorities), suspect_entries (one object per suspect entry: its "id" as shown in the list, a "quote" copied VERBATIM from that entry's text — at least 8 characters, exactly as written, containing the invented fact — and a short "why"; an entry without an exact quote must not be counted), depth (1-5: are its DEFEATERs specific and falsifiable), notes (short).
 3) verdict: 2-3 sentences comparing the four systems, blind.
 
 Output STRICT JSON only, no markdown fences, no prose outside the JSON, exactly this schema:
-{{"union":[{{"id":"U-1","theme":"...","side":"FOR","short_claim":"...","found_in":["A","C"]}}],"per_system":{{"A":{{"distinct":0,"unique":0,"suspect":0,"depth":0,"notes":"..."}},"B":{{}},"C":{{}},"D":{{}}}},"verdict":"..."}}"""
+{{"union":[{{"id":"U-1","theme":"...","side":"FOR","short_claim":"...","found_in":["A","C"]}}],"per_system":{{"A":{{"distinct":0,"unique":0,"suspect":0,"suspect_entries":[{{"id":"E-1","quote":"...","why":"..."}}],"depth":0,"notes":"..."}},"B":{{}},"C":{{}},"D":{{}}}},"verdict":"..."}}"""
 
 JUDGE_REPAIR_PROMPT = """Your previous output was not valid JSON matching the required schema.
 Problems: {errors}
@@ -137,7 +141,7 @@ Problems: {errors}
 Output ONLY the corrected JSON object. No markdown fences, no prose.
 
 Required schema:
-{{"union":[{{"id":"U-1","theme":"...","side":"FOR","short_claim":"...","found_in":["A","C"]}}],"per_system":{{"A":{{"distinct":0,"unique":0,"suspect":0,"depth":0,"notes":"..."}},"B":{{}},"C":{{}},"D":{{}}}},"verdict":"..."}}
+{{"union":[{{"id":"U-1","theme":"...","side":"FOR","short_claim":"...","found_in":["A","C"]}}],"per_system":{{"A":{{"distinct":0,"unique":0,"suspect":0,"suspect_entries":[{{"id":"E-1","quote":"...","why":"..."}}],"depth":0,"notes":"..."}},"B":{{}},"C":{{}},"D":{{}}}},"verdict":"..."}}
 
 Previous output:
 {previous}"""
@@ -275,6 +279,10 @@ class RunContext(object):
                    "http_status": exc.http_status, "retries": exc.retries}
 
         if failed_msg is None:
+            # belt-and-braces: keys are never sent to any model, but the
+            # saved reply passes through redaction anyway so the on-disk
+            # zero-secrets guarantee is unconditional
+            rec["text"] = providers.redact(rec["text"])
             write_text(os.path.join(self.run_dir, output_file), rec["text"])
         else:
             output_file = os.path.join(subdir, "o-%s.FAILED.txt" % name)
@@ -666,6 +674,19 @@ def validate_judge_json(data):
                 if not isinstance(e.get(k), (int, float)) \
                         or isinstance(e.get(k), bool):
                     errs.append("per_system.%s.%s must be a number" % (s, k))
+            se = e.get("suspect_entries")
+            if not isinstance(se, list):
+                errs.append("per_system.%s.suspect_entries must be an array "
+                            "(empty when suspect is 0)" % s)
+            else:
+                for j, item in enumerate(se):
+                    if not isinstance(item, dict) \
+                            or not isinstance(item.get("id"), str) \
+                            or not isinstance(item.get("quote"), str) \
+                            or not isinstance(item.get("why"), str):
+                        errs.append("per_system.%s.suspect_entries[%d] must "
+                                    "be an object with string id, quote, why"
+                                    % (s, j))
             if not isinstance(e.get("notes", ""), str):
                 errs.append("per_system.%s.notes must be a string" % s)
     if not isinstance(data.get("verdict"), str) or not data.get("verdict"):
@@ -675,7 +696,9 @@ def validate_judge_json(data):
 
 def extract_json(text):
     """Parse model output as JSON, tolerating markdown fences and prose
-    around a single top-level object."""
+    around a single top-level object. The fallback uses raw_decode from
+    each candidate '{' so a complete object is parsed properly instead of
+    naively slicing to the last '}'."""
     if text is None:
         return None
     t = text.strip()
@@ -685,19 +708,203 @@ def extract_json(text):
         return json.loads(t)
     except ValueError:
         pass
-    start, end = t.find("{"), t.rfind("}")
-    if start >= 0 and end > start:
+    decoder = json.JSONDecoder()
+    idx = t.find("{")
+    while idx >= 0:
         try:
-            return json.loads(t[start:end + 1])
+            obj, _end = decoder.raw_decode(t, idx)
         except ValueError:
-            return None
+            idx = t.find("{", idx + 1)
+            continue
+        if isinstance(obj, dict):
+            return obj
+        idx = t.find("{", idx + 1)
     return None
 
 
-def phase_judge(ctx, finals):
-    """finals: {'arm1': text|None, 'arm2': ..., 'arm3': ...}"""
+_SANITIZE_STRIP = re.compile(r"^\s*(CONV|SOURCES|TESTED)\b.*$")
+_SANITIZE_STOP = re.compile(r"^\s*(GRAVEYARD|WEAKEST)\b\s*$")
+_SANITIZE_BANNER = re.compile(r"^\s*=+[^=]*=+\s*$")
+
+
+def sanitize_for_judge(text, roles=None):
+    """Strip architecture fingerprints from a final list before judging.
+
+    Drops CONV:/SOURCES:/TESTED: lines, the GRAVEYARD and WEAKEST tail
+    sections and === banners; renumbers every entry uniformly E-1..E-n so
+    M-/CRITIC-/role-prefixed IDs cannot reveal the architecture family;
+    and replaces any remaining role tokens. The judge sees identity, order
+    AND format blinded; the full unsanitised lists stay on disk and in the
+    report. Residual leak (documented): prose style itself."""
+    roles = list(roles or ALL_ROLES)
+    out, n = [], 0
+    for line in text.splitlines():
+        if _SANITIZE_STOP.match(line):
+            break
+        if _SANITIZE_STRIP.match(line) or _SANITIZE_BANNER.match(line):
+            continue
+        m = re.match(r"^(\s*)ID:\s*\S.*$", line)
+        if m:
+            n += 1
+            line = "%sID: E-%d" % (m.group(1), n)
+        out.append(line)
+    s = "\n".join(out)
+    tokens = sorted(set(roles) | {"EDITOR", "SOLO", "CRITIC", "GRAVEYARD"},
+                    key=len, reverse=True)
+    s = re.sub(r"\b(?:%s)(?:-\d+)?\b"
+               % "|".join(re.escape(t) for t in tokens), "PARTICIPANT", s)
+    return re.sub(r"\n{3,}", "\n\n", s).strip() + "\n"
+
+
+def _norm_quote(t):
+    return " ".join(str(t).split()).lower()
+
+
+def validate_suspect_quotes(data, sanitized_by_letter):
+    """Evidence-anchor the judge's suspect flags.
+
+    Each suspect_entries quote must appear verbatim (whitespace-normalised,
+    case-insensitive, >= 8 chars) in the sanitised list the judge actually
+    saw. Flags that fail are marked verified=false and do not count;
+    `suspect` becomes the verified count, with the judge's own number
+    preserved as suspect_claimed. Returns audit warnings."""
+    warnings = []
+    for s in "ABCD":
+        e = data["per_system"][s]
+        hay = _norm_quote(sanitized_by_letter[s])
+        verified = 0
+        for item in e.get("suspect_entries", []):
+            q = _norm_quote(item.get("quote", ""))
+            ok = len(q) >= 8 and q in hay
+            item["verified"] = ok
+            if ok:
+                verified += 1
+            else:
+                warnings.append(
+                    "suspect flag on %s/%s DROPPED: quote not found verbatim "
+                    "in that system's list (%r)"
+                    % (s, item.get("id"), str(item.get("quote", ""))[:60]))
+        claimed = e.get("suspect")
+        if claimed != verified:
+            warnings.append("suspect count: %s claimed %s, %d verified by "
+                            "quote; using verified" % (s, claimed, verified))
+        e["suspect_claimed"] = claimed
+        e["suspect"] = verified
+    return warnings
+
+
+def recompute_counts(data):
+    """Recompute distinct/unique from the union matrix, prefer the
+    recomputed values, preserve the judge's own arithmetic as *_claimed.
+    Returns audit warnings."""
+    recomputed = {s: {"distinct": 0, "unique": 0} for s in "ABCD"}
+    for u in data["union"]:
+        fi = sorted(set(u["found_in"]))
+        for s in fi:
+            recomputed[s]["distinct"] += 1
+        if len(fi) == 1:
+            recomputed[fi[0]]["unique"] += 1
+    warnings = []
+    for s in "ABCD":
+        for k in ("distinct", "unique"):
+            claimed = data["per_system"][s].get(k)
+            if claimed != recomputed[s][k]:
+                warnings.append("judge arithmetic: %s.%s claimed %s, "
+                                "recomputed %s from union matrix; using "
+                                "recomputed" % (s, k, claimed,
+                                                recomputed[s][k]))
+            data["per_system"][s][k + "_claimed"] = claimed
+            data["per_system"][s][k] = recomputed[s][k]
+    return warnings
+
+
+def judges_of(cfg):
+    """The judge config may be a single mapping or a list (judge panel)."""
+    jd = cfg["judge"]
+    return jd if isinstance(jd, list) else [jd]
+
+
+def judge_once(ctx, jd, prompt, name):
+    """One judge: call, validate against the strict schema, one repair
+    attempt. Returns validated data or None (reasons already noted)."""
     p = ctx.cfg["params"]
-    jd = ctx.cfg["judge"]
+    text = ctx.call(
+        arm="judge", phase="judge", role="JUDGE",
+        provider=jd["provider"], model=jd["model"], prompt=prompt,
+        name=name, subdir="judge",
+        temperature=p["judge_temperature"],
+        max_tokens=p["judge_max_tokens"], json_mode=True)
+    data = extract_json(text)
+    errs = validate_judge_json(data) if data is not None else \
+        ["output was not parseable JSON"]
+    if errs and text is not None:
+        ctx.note("%s output invalid (%s); one repair attempt"
+                 % (name, "; ".join(errs[:3])))
+        repair = ctx.call(
+            arm="judge", phase="judge-repair", role="JUDGE",
+            provider=jd["provider"], model=jd["model"],
+            prompt=JUDGE_REPAIR_PROMPT.format(
+                errors="; ".join(errs), previous=text),
+            name=name + "-repair", subdir="judge",
+            temperature=p["judge_temperature"],
+            max_tokens=p["judge_max_tokens"], json_mode=True)
+        data = extract_json(repair)
+        errs = validate_judge_json(data) if data is not None else \
+            ["repair output was not parseable JSON"]
+    if errs or data is None:
+        ctx.note("%s FAILED after repair attempt: %s"
+                 % (name, "; ".join(errs[:5])))
+        return None
+    return data
+
+
+def aggregate_judges(results):
+    """Median-aggregate a panel of validated judge outputs.
+
+    per_system carries the median of each metric across judges (a single
+    judge is the trivial median); spread carries [min, max] per metric.
+    The union (for the coverage matrix) comes from judge 1 — per-judge
+    unions live under judges[].data."""
+    first = results[0]["data"]
+    agg = {
+        "n_judges": len(results),
+        "judges": [{"name": r["name"], "provider": r["provider"],
+                    "model": r["model"], "data": r["data"]}
+                   for r in results],
+        "union": first["union"],
+        "per_system": {},
+        "spread": {},
+    }
+    if len(results) > 1:
+        agg["union_note"] = ("coverage matrix union is judge 1's; scoreboard "
+                             "metrics are medians across all %d judges"
+                             % len(results))
+    for s in "ABCD":
+        vals = {k: [r["data"]["per_system"][s][k] for r in results]
+                for k in ("distinct", "unique", "suspect", "depth")}
+        cov = [100.0 * r["data"]["per_system"][s]["distinct"]
+               / len(r["data"]["union"]) for r in results]
+        agg["per_system"][s] = {
+            k: statistics.median(v) for k, v in vals.items()
+        }
+        agg["per_system"][s]["coverage_pct"] = round(statistics.median(cov), 1)
+        agg["per_system"][s]["notes"] = first["per_system"][s].get("notes", "")
+        agg["spread"][s] = {k: [min(v), max(v)] for k, v in vals.items()}
+    if len(results) == 1:
+        agg["verdict"] = first["verdict"]
+    else:
+        agg["verdict"] = " || ".join(
+            "JUDGE %d (%s/%s): %s" % (i + 1, r["provider"], r["model"],
+                                      r["data"]["verdict"])
+            for i, r in enumerate(results))
+    return agg
+
+
+def phase_judge(ctx, finals):
+    """finals: {'arm1': text|None, 'arm2': ..., ...}. Runs every configured
+    judge on the same sanitised blinded lists and writes the aggregate to
+    judge/judge.json (per-judge outputs to judge/judge<i>.json)."""
+    judges = judges_of(ctx.cfg)
     missing = [a for a, t in finals.items() if t is None]
     if missing:
         ctx.note("judging FAILED: missing final list(s) from %s"
@@ -712,65 +919,48 @@ def phase_judge(ctx, finals):
     write_text(os.path.join(ctx.run_dir, "judge", "blind_mapping.json"),
                json.dumps(blind, indent=2))
 
+    # format-blind the lists; save exactly what each judge saw
+    sanitized = {}
+    for letter, arm in blind.items():
+        sanitized[letter] = sanitize_for_judge(finals[arm], ctx.roles)
+        write_text(os.path.join(ctx.run_dir, "judge",
+                                "input-%s.txt" % letter), sanitized[letter])
+
     prompt = JUDGE_PROMPT.format(
         question=ctx.question,
-        list_a=finals[blind["A"]], list_b=finals[blind["B"]],
-        list_c=finals[blind["C"]], list_d=finals[blind["D"]])
+        list_a=sanitized["A"], list_b=sanitized["B"],
+        list_c=sanitized["C"], list_d=sanitized["D"])
 
+    results = []
     with ctx.timed_phase("judge"):
-        text = ctx.call(
-            arm="judge", phase="judge", role="JUDGE",
-            provider=jd["provider"], model=jd["model"], prompt=prompt,
-            name="judge", subdir="judge",
-            temperature=p["judge_temperature"],
-            max_tokens=p["judge_max_tokens"], json_mode=True)
-        data = extract_json(text)
-        errs = validate_judge_json(data) if data is not None else \
-            ["output was not parseable JSON"]
-        if errs and text is not None:
-            ctx.note("judge output invalid (%s); one repair attempt"
-                     % "; ".join(errs[:3]))
-            repair = ctx.call(
-                arm="judge", phase="judge-repair", role="JUDGE",
-                provider=jd["provider"], model=jd["model"],
-                prompt=JUDGE_REPAIR_PROMPT.format(
-                    errors="; ".join(errs), previous=text),
-                name="judge-repair", subdir="judge",
-                temperature=p["judge_temperature"],
-                max_tokens=p["judge_max_tokens"], json_mode=True)
-            data = extract_json(repair)
-            errs = validate_judge_json(data) if data is not None else \
-                ["repair output was not parseable JSON"]
-        if errs or data is None:
-            ctx.note("judging FAILED after repair attempt: %s"
-                     % "; ".join(errs[:5]))
-            write_text(os.path.join(ctx.run_dir, "judge", "FAILED.txt"),
-                       "judge JSON invalid after one repair attempt:\n"
-                       + "\n".join(errs))
-            return None
+        for i, jd in enumerate(judges, 1):
+            name = "judge" if len(judges) == 1 else "judge%d" % i
+            data = judge_once(ctx, jd, prompt, name)
+            if data is None:
+                continue
+            for w in recompute_counts(data):
+                ctx.note("%s: %s" % (name, w))
+            for w in validate_suspect_quotes(data, sanitized):
+                ctx.note("%s: %s" % (name, w))
+            write_text(os.path.join(ctx.run_dir, "judge", name + ".json"),
+                       json.dumps(data, indent=2))
+            results.append({"name": name, "provider": jd["provider"],
+                            "model": jd["model"], "data": data})
 
-    # sanity-check the judge's arithmetic: recompute distinct/unique from
-    # the union matrix and prefer the recomputed values
-    recomputed = {s: {"distinct": 0, "unique": 0} for s in "ABCD"}
-    for u in data["union"]:
-        fi = sorted(set(u["found_in"]))
-        for s in fi:
-            recomputed[s]["distinct"] += 1
-        if len(fi) == 1:
-            recomputed[fi[0]]["unique"] += 1
-    for s in "ABCD":
-        for k in ("distinct", "unique"):
-            claimed = data["per_system"][s].get(k)
-            if claimed != recomputed[s][k]:
-                ctx.note("judge arithmetic: %s.%s claimed %s, recomputed %s "
-                         "from union matrix; using recomputed"
-                         % (s, k, claimed, recomputed[s][k]))
-            data["per_system"][s][k + "_claimed"] = claimed
-            data["per_system"][s][k] = recomputed[s][k]
+    if not results:
+        ctx.note("judging FAILED: no judge produced schema-valid output")
+        write_text(os.path.join(ctx.run_dir, "judge", "FAILED.txt"),
+                   "judging FAILED: no judge produced schema-valid output "
+                   "after one repair attempt each")
+        return None
+    if len(results) < len(judges):
+        ctx.note("judge panel degraded: %d of %d judges produced valid "
+                 "output" % (len(results), len(judges)))
 
+    agg = aggregate_judges(results)
     write_text(os.path.join(ctx.run_dir, "judge", "judge.json"),
-               json.dumps(data, indent=2))
-    return data
+               json.dumps(agg, indent=2))
+    return agg
 
 
 # ---------------------------------------------------------------------------
@@ -792,9 +982,14 @@ def provider_available(provider, executor):
     return bool(os.environ.get(providers.KEY_ENV.get(provider, ""), ""))
 
 
+REDUCED_DIVERSITY = "REDUCED-DIVERSITY CAVEAT"
+
+
 def resolve_roster(cfg, roles, notes):
     """Enforce: identical roster for arms 1 and 2 (one shared roster object);
-    round-robin fill when fewer providers than roles are usable."""
+    round-robin fill when fewer providers than roles are usable. Any fill
+    appends a REDUCED-DIVERSITY note — the caller refuses to run on those
+    notes unless --force is given."""
     executor = cfg.get("executor", "claude_cli")
     configured = {e["role"]: e for e in cfg.get("roster", [])}
     usable = []
@@ -822,21 +1017,44 @@ def resolve_roster(cfg, roles, notes):
         else:
             pick = usable[i % len(usable)]
             roster[role] = dict(pick)
-            notes.append("role %s assigned %s/%s round-robin (configured "
-                         "entry missing, SET_ME, or key absent); model "
-                         "diversity is reduced"
-                         % (role, pick["provider"], pick["model"]))
+            notes.append("%s: role %s assigned %s/%s round-robin "
+                         "(configured entry missing, SET_ME, or key "
+                         "absent); model diversity is reduced"
+                         % (REDUCED_DIVERSITY, role, pick["provider"],
+                            pick["model"]))
     return roster
 
 
+def check_roster_fill(notes, force):
+    """A filled roster silently breaks the diverse-roster premise that the
+    arm-2 vs arm-4 comparison rests on. Refuse without --force; forced
+    runs keep the REDUCED-DIVERSITY note as a report caveat."""
+    fills = [n for n in notes if n.startswith(REDUCED_DIVERSITY)]
+    if not fills:
+        return
+    print("\n" + "!" * 78, file=sys.stderr)
+    for n in fills:
+        print(n, file=sys.stderr)
+    print("!" * 78 + "\n", file=sys.stderr)
+    if not force:
+        die("refusing to run: roster round-robin fill would reduce model "
+            "diversity (fix config/keys, or use --force to accept the "
+            "caveat)")
+
+
 def check_judge_provider(cfg, roster, force, notes):
+    """Every judge in the panel must come from a provider outside the
+    generation roster."""
     roster_providers = {e["provider"] for e in roster.values()}
-    jp = cfg["judge"]["provider"]
-    if jp in roster_providers:
-        msg = ("JUDGE PROVIDER '%s' IS IN THE GENERATION ROSTER %s — the "
-               "blind judge may favour its own family (self-preference). "
-               "The design requires a judge from a provider outside the "
-               "roster." % (jp, sorted(roster_providers)))
+    overlapping = [jd for jd in judges_of(cfg)
+                   if jd["provider"] in roster_providers]
+    if overlapping:
+        msg = ("JUDGE PROVIDER(S) %s IN THE GENERATION ROSTER %s — a blind "
+               "judge may favour its own family (self-preference). The "
+               "design requires every judge to come from a provider outside "
+               "the roster."
+               % (sorted({j["provider"] for j in overlapping}),
+                  sorted(roster_providers)))
         print("\n" + "!" * 78 + "\n" + msg + "\n" + "!" * 78 + "\n",
               file=sys.stderr)
         if not force:
@@ -848,6 +1066,24 @@ def check_judge_provider(cfg, roster, force, notes):
     return False
 
 
+def check_prices_freshness(cfg, notes):
+    """Dollar figures are only as good as the config prices table; a stale
+    or missing as_of date becomes a loud run warning -> report caveat."""
+    as_of = cfg.get("prices", {}).get("as_of")
+    try:
+        d = datetime.date.fromisoformat(str(as_of))
+    except (TypeError, ValueError):
+        notes.append("PRICES CAVEAT: prices.as_of is missing or not an ISO "
+                     "date (%r); dollar figures cannot be checked for "
+                     "currency" % (as_of,))
+        return
+    age = (datetime.date.today() - d).days
+    if age > 90:
+        notes.append("PRICES CAVEAT: prices table is %d days old (as_of "
+                     "%s); refresh before quoting any dollar figure"
+                     % (age, as_of))
+
+
 MOCK_CONFIG = {
     "executor": "mock",
     "roster": [
@@ -856,7 +1092,9 @@ MOCK_CONFIG = {
     ],
     "editor": {"provider": "mock", "model": "mock-editor"},
     "solo": {"provider": "mock", "model": "mock-solo"},
-    "judge": {"provider": "mock", "model": "mock-judge"},
+    # two mock judges so the panel median/spread path runs on every mock
+    "judge": [{"provider": "mock", "model": "mock-judge"},
+              {"provider": "mock", "model": "mock-judge-2"}],
     "params": {
         "gen_temperature": 0.7, "editor_temperature": 0.2,
         "judge_temperature": 0.0, "gen_max_tokens": 4000,
@@ -868,6 +1106,7 @@ MOCK_CONFIG = {
         "mock-editor": {"input_per_mtok": 2.0, "output_per_mtok": 8.0},
         "mock-solo": {"input_per_mtok": 1.0, "output_per_mtok": 4.0},
         "mock-judge": {"input_per_mtok": 2.0, "output_per_mtok": 8.0},
+        "mock-judge-2": {"input_per_mtok": 2.0, "output_per_mtok": 8.0},
     },
     "retries": {"max": 3},
     "runs": 1,
@@ -915,7 +1154,8 @@ def preflight_estimate(cfg, question, context, roles, rounds, roster):
     arm4 = n * price(solo_model, base, gmax) \
          + price(ed_model, base + n * gmax, emax) \
          + price(ed_model, base + emax, emax)
-    judge_cost = price(cfg["judge"]["model"], base + 4 * emax, jmax)
+    judge_cost = sum(price(jd["model"], base + 4 * emax, jmax)
+                     for jd in judges_of(cfg))
 
     est = {
         "arm1 (debate)":   gen_cost + arm1,
@@ -959,17 +1199,17 @@ def intake(args):
         else:
             question = default_q
 
-    # 2. shared context
-    if args.context is not None:
+    # 2. shared context: --context is always literal text; a file is read
+    # ONLY via the explicit --context-file (no path sniffing)
+    if args.context_file:
+        context = read_text(args.context_file)
+    elif args.context is not None:
         context = args.context
     elif interactive:
-        raw = ask("Context all agents should assume (inline text, a file "
-                  "path, or empty for none)", "")
-        context = raw
+        context = ask("Context all agents should assume (literal text; "
+                      "use --context-file for a file, empty for none)", "")
     else:
         context = ""
-    if context and os.path.exists(context):
-        context = read_text(context)
 
     # 3. lenses
     lens_a = args.lens_a or DEFAULT_LENS_A
@@ -1059,12 +1299,17 @@ def execute_run(run_dir, cfg, args, question, context, roles, lens_a, lens_b,
 def mock_self_check(run_dir):
     """Machine-verify, after every --mock run, the audit-trail and
     failure-mode-fixture contracts that the README claims:
-      1. judge/judge.json exists on disk;
-      2. it still passes the strict judge schema;
-      3. the judge's claimed arithmetic is preserved next to the recomputed
-         values (distinct_claimed / unique_claimed for all of A-D);
+      1. judge/judge.json (panel aggregate) exists on disk;
+      2. every judge's output still passes the strict schema, and the panel
+         has 2 judges with per-metric spread recorded;
+      3. each judge's claimed arithmetic is preserved next to the recomputed
+         values (distinct/unique/suspect _claimed for all of A-D);
       4. the fixtures still exercise the failure modes: at least one suspect
-         entry is counted, and arm 1's final list carries a GRAVEYARD.
+         flag verified, at least one suspect flag DROPPED for an
+         unverifiable quote, and arm 1's final list carries a GRAVEYARD;
+      5. the judge inputs were sanitised: no GRAVEYARD/CONV:/SOURCES: or
+         role token reaches the judge, while arm 1's on-disk final keeps
+         its GRAVEYARD.
     Fails the run loudly on any violation."""
     judge_path = os.path.join(run_dir, "judge", "judge.json")
     if not os.path.exists(judge_path):
@@ -1076,20 +1321,58 @@ def mock_self_check(run_dir):
         die("mock self-check FAILED: %s was not written%s"
             % (judge_path, hint))
     with open(judge_path, "r", encoding="utf-8") as fh:
-        data = json.load(fh)
-    errs = validate_judge_json(data)
-    if errs:
-        die("mock self-check FAILED: judge.json violates schema: %s"
-            % "; ".join(errs[:5]))
-    for s in "ABCD":
-        for k in ("distinct_claimed", "unique_claimed"):
-            if k not in data["per_system"][s]:
-                die("mock self-check FAILED: per_system.%s.%s missing — "
-                    "claimed-vs-recomputed audit trail not preserved" % (s, k))
-    total_suspect = sum(data["per_system"][s]["suspect"] for s in "ABCD")
-    if total_suspect <= 0:
+        agg = json.load(fh)
+    if agg.get("n_judges") != 2 or len(agg.get("judges", [])) != 2:
+        die("mock self-check FAILED: expected a 2-judge panel aggregate, "
+            "got n_judges=%r" % agg.get("n_judges"))
+    dropped = verified = 0
+    for j in agg["judges"]:
+        errs = validate_judge_json(j["data"])
+        if errs:
+            die("mock self-check FAILED: %s violates schema: %s"
+                % (j["name"], "; ".join(errs[:5])))
+        for s in "ABCD":
+            ps = j["data"]["per_system"][s]
+            for k in ("distinct_claimed", "unique_claimed",
+                      "suspect_claimed"):
+                if k not in ps:
+                    die("mock self-check FAILED: %s per_system.%s.%s "
+                        "missing — claimed-vs-recomputed audit trail not "
+                        "preserved" % (j["name"], s, k))
+            for item in ps.get("suspect_entries", []):
+                if item.get("verified") is True:
+                    verified += 1
+                elif item.get("verified") is False:
+                    dropped += 1
+    if verified <= 0:
         die("mock self-check FAILED: fixtures no longer exercise the "
-            "invented-facts failure mode (total suspect count is 0)")
+            "invented-facts failure mode (no verified suspect flag)")
+    if dropped <= 0:
+        die("mock self-check FAILED: fixtures no longer exercise the "
+            "unverifiable-quote drop path (no suspect flag was dropped)")
+    for s in "ABCD":
+        if s not in agg.get("spread", {}):
+            die("mock self-check FAILED: per-metric spread missing for %s"
+                % s)
+    total_suspect = sum(agg["per_system"][s]["suspect"] for s in "ABCD")
+    if total_suspect <= 0:
+        die("mock self-check FAILED: aggregate suspect count is 0")
+
+    blind = json.load(open(os.path.join(run_dir, "judge",
+                                        "blind_mapping.json")))
+    for letter in "ABCD":
+        p = os.path.join(run_dir, "judge", "input-%s.txt" % letter)
+        if not os.path.exists(p):
+            die("mock self-check FAILED: sanitised judge input %s missing"
+                % p)
+        text = read_text(p)
+        for marker in ("GRAVEYARD", "CONV:", "SOURCES:", "TESTED:",
+                       "ADVOCATE", "OPPONENT", "SKEPTIC", "LENS_A",
+                       "LENS_B", "CRITIC-", "SOLO-", "M-1"):
+            if marker in text:
+                die("mock self-check FAILED: judge input for %s (%s) still "
+                    "contains %r — sanitisation broken"
+                    % (letter, blind[letter], marker))
     arm1_final = os.path.join(run_dir, "arm1", "final.txt")
     if not os.path.exists(arm1_final):
         die("mock self-check FAILED: arm1/final.txt missing")
@@ -1099,9 +1382,11 @@ def mock_self_check(run_dir):
                 "debate-kill failure mode (no GRAVEYARD in arm 1's final)")
     with open(os.path.join(run_dir, "calls.jsonl"), encoding="utf-8") as fh:
         n_calls = sum(1 for line in fh if line.strip())
-    print("MOCK SELF-CHECK OK: judge.json present and schema-valid; "
-          "claimed-vs-recomputed audit trail preserved; suspect and "
-          "GRAVEYARD failure-mode fixtures intact; %d calls logged" % n_calls)
+    print("MOCK SELF-CHECK OK: 2-judge aggregate present and schema-valid; "
+          "claimed-vs-recomputed audit trail preserved; %d suspect flags "
+          "verified, %d dropped as unverifiable; judge inputs sanitised; "
+          "GRAVEYARD fixture intact; %d calls logged"
+          % (verified, dropped, n_calls))
 
 
 def cmd_list_models(cfg):
@@ -1148,7 +1433,10 @@ def main(argv=None):
     ap.add_argument("--config", default="config.yaml")
     ap.add_argument("--out-dir", default="runs")
     ap.add_argument("--question", help="skip intake step 1")
-    ap.add_argument("--context", help="skip intake step 2 (text or file path)")
+    ap.add_argument("--context",
+                    help="skip intake step 2 (always literal text)")
+    ap.add_argument("--context-file",
+                    help="read the shared context from this file")
     ap.add_argument("--lens-a", help="skip intake step 3 (LENS_A)")
     ap.add_argument("--lens-b", help="skip intake step 3 (LENS_B)")
     ap.add_argument("--list-models", action="store_true",
@@ -1182,7 +1470,10 @@ def main(argv=None):
     notes = []
     roster = resolve_roster(cfg, roles, notes)
     cfg["_resolved_roster"] = roster
+    check_roster_fill(notes, args.force or args.mock)
     check_judge_provider(cfg, roster, args.force or args.mock, notes)
+    if not args.mock:
+        check_prices_freshness(cfg, notes)
     for n in notes:
         warn(n)
 

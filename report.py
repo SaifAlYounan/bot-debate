@@ -121,10 +121,14 @@ def compute_metrics(run_dir):
             entry.update(distinct=ps["distinct"], unique=ps["unique"],
                          suspect=ps["suspect"], depth=ps["depth"],
                          notes=ps.get("notes", ""))
-            if union:
+            if ps.get("coverage_pct") is not None:
+                # panel aggregate: median of per-judge coverage
+                entry["coverage_pct"] = ps["coverage_pct"]
+            elif union:
                 entry["coverage_pct"] = round(
                     100.0 * ps["distinct"] / len(union), 1)
             total = in_tok + out_tok
+            entry["total_tokens"] = total if not null_tok else None
             if total > 0 and not null_tok:
                 entry["efficiency"] = round(
                     (ps["distinct"] - ps["suspect"]) / (total / 10000.0), 1)
@@ -138,6 +142,26 @@ def compute_metrics(run_dir):
     m["total_cost_usd"] = round(
         sum(c["cost_usd"] for c in calls if c["cost_usd"] is not None), 4)
     m["judging_failed"] = judge is None
+
+    # panel disagreement: does the headline winner depend on the judge?
+    m["n_judges"] = (judge or {}).get("n_judges", 1 if judge else 0)
+    m["headline_winners_by_judge"] = []
+    if judge and judge.get("judges") and letter_of:
+        for j in judge["judges"]:
+            effs = {}
+            for arm in ARMS:
+                letter = m["arms"][arm]["letter"]
+                total = m["arms"][arm].get("total_tokens")
+                if letter and total:
+                    ps = j["data"]["per_system"][letter]
+                    effs[arm] = (ps["distinct"] - ps["suspect"]) \
+                        / (total / 10000.0)
+            if effs:
+                best = max(effs.values())
+                m["headline_winners_by_judge"].append(
+                    sorted(a for a, v in effs.items() if v == best))
+    winners = {tuple(w) for w in m["headline_winners_by_judge"]}
+    m["judges_disagree"] = len(winners) > 1
     return m
 
 
@@ -215,6 +239,9 @@ def _fmt(v, kind=""):
     if kind == "pct":
         return "%.1f%%" % v
     if kind == "int":
+        # panel medians over an even judge count can be fractional
+        if isinstance(v, float) and v != int(v):
+            return "%.1f" % v
         return "{:,}".format(int(v))
     return str(v)
 
@@ -363,6 +390,78 @@ def cards_html(m):
     return "".join(out)
 
 
+def _judge_line(jd):
+    """Config `judge` may be a single mapping or a panel list."""
+    entries = jd if isinstance(jd, list) else [jd]
+    return " + ".join("%s/%s" % (e.get("provider"), e.get("model"))
+                      for e in entries)
+
+
+def judges_html(m):
+    """Per-judge metrics, verdicts and panel spread. Renders for both the
+    panel aggregate and legacy single-judge judge.json files."""
+    judge = m["judge"]
+    if not judge:
+        return "<p class='meta'>no judge output (judging failed).</p>"
+    entries = judge.get("judges")
+    if not entries:  # legacy single-judge file
+        return ("<p class='meta'>single judge (legacy run format); "
+                "scoreboard values are that judge's, audited as usual.</p>")
+    cols = [(m["arms"][arm]["letter"], arm) for arm in ARMS]
+    out = []
+    for i, j in enumerate(entries, 1):
+        ps = j["data"]["per_system"]
+        out.append("<h3>Judge %d — <span class='mono'>%s/%s</span></h3>"
+                   % (i, esc(j.get("provider")), esc(j.get("model"))))
+        out.append("<table><tr><th></th>")
+        for letter, arm in cols:
+            out.append("<th>Arm %s <span class='mono'>[%s]</span></th>"
+                       % (esc(arm[-1]), esc(letter)))
+        out.append("</tr>")
+        for key, label in (("distinct", "Distinct"), ("unique", "Unique"),
+                           ("suspect", "Suspect (verified)"),
+                           ("suspect_claimed", "Suspect (judge claimed)"),
+                           ("depth", "Depth")):
+            out.append("<tr><th>%s</th>" % esc(label))
+            for letter, arm in cols:
+                out.append("<td class='num'>%s</td>"
+                           % _fmt(ps[letter].get(key), "int"))
+            out.append("</tr>")
+        out.append("</table>")
+        out.append("<p class='meta'><b>Verdict:</b> %s</p>"
+                   % esc(j["data"].get("verdict", "")))
+        dropped = [
+            "%s/%s" % (letter, item.get("id"))
+            for letter, arm in cols
+            for item in ps[letter].get("suspect_entries", [])
+            if item.get("verified") is False]
+        if dropped:
+            out.append("<p class='meta'>Dropped suspect flags (quote not "
+                       "found verbatim in the list): %s</p>"
+                       % esc(", ".join(dropped)))
+    if len(entries) > 1 and judge.get("spread"):
+        out.append("<h3>Panel spread (min–max across judges)</h3>"
+                   "<table><tr><th></th>")
+        for letter, arm in cols:
+            out.append("<th>Arm %s <span class='mono'>[%s]</span></th>"
+                       % (esc(arm[-1]), esc(letter)))
+        out.append("</tr>")
+        for key in ("distinct", "unique", "suspect", "depth"):
+            out.append("<tr><th>%s</th>" % esc(key))
+            for letter, arm in cols:
+                lo, hi = judge["spread"][letter][key]
+                out.append("<td class='num'>%s–%s</td>"
+                           % (_fmt(lo, "int"), _fmt(hi, "int")))
+            out.append("</tr>")
+        out.append("</table>")
+        agree = ("judges DISAGREE on the headline winner — treat the "
+                 "headline as unresolved" if m["judges_disagree"] else
+                 "all judges agree on the headline winner")
+        out.append("<p class='meta'>Scoreboard values are medians across "
+                   "the panel; %s.</p>" % agree)
+    return "".join(out)
+
+
 def details_html(m):
     out = []
     for arm in ARMS:
@@ -403,18 +502,28 @@ def render_run_report(run_dir):
         "3 runs (this report covers 1 run).",
         "prices as of %s, verify before quoting externally."
         % esc(cfg.get("prices", {}).get("as_of", "UNKNOWN")),
+        "suspect counts include only judge flags verified by a verbatim "
+        "quote from the list; depth remains judge opinion.",
         "Paired design: round-1 generations were produced once and reused "
         "as Arm 1 round 1 and Arm 2's generation phase; their tokens and "
         "cost are attributed to BOTH arms, so arm costs do not sum to "
         "total spend ($%s). Arm 4 (persona control) generated its own "
         "single-model round and is not sampling-paired with arms 1/2."
         % _fmt(m["total_cost_usd"], "usd").lstrip("$"),
-        "Blinding limit: the judge never sees arm names, counts or "
-        "metadata, but the final lists' own structural markers (GRAVEYARD/"
-        "TESTED in arm 1, CONV/CRITIC entries in arms 2 and 4) can reveal "
-        "the architecture family — the blinding hides identity and order, "
-        "not format.",
+        "Blinding: judges saw sanitised lists (structural markers stripped, "
+        "entries renumbered E-n, role tokens removed — saved as "
+        "judge/input-*.txt). Residual leak: prose style itself can still "
+        "hint that a list came from a single model.",
     ]
+    if m.get("n_judges", 1) > 1:
+        caveats.append(
+            "Judge panel of %d: scoreboard metrics are medians across "
+            "judges; the coverage matrix uses judge 1's union (per-judge "
+            "unions are in judge/judge&lt;i&gt;.json)." % m["n_judges"])
+        if m.get("judges_disagree"):
+            caveats.append(
+                "JUDGES DISAGREE on the headline winner — see the Judges "
+                "section; treat the headline as unresolved for this run.")
     solo_cfg = cfg.get("solo", {}) or {}
     ed_cfg = cfg.get("editor", {}) or {}
     # two tiers, both guarded against absent config keys (None == None must
@@ -476,6 +585,8 @@ diversity.</p>
 {matrix}
 <h2>Depth &amp; grounding</h2>
 {cards}
+<h2>Judges</h2>
+{judges}
 <h2>Final lists</h2>
 {details}
 <h2>Raw records</h2>
@@ -501,11 +612,10 @@ reply (<span class="mono">o-*.txt</span>) is on disk:
                               cfg.get("editor", {}).get("model"))),
         solo=esc("%s/%s" % (cfg.get("solo", {}).get("provider"),
                             cfg.get("solo", {}).get("model"))),
-        judge_m=esc("%s/%s" % (cfg.get("judge", {}).get("provider"),
-                               cfg.get("judge", {}).get("model"))),
+        judge_m=esc(_judge_line(cfg.get("judge", {}))),
         verdict=verdict_html, scoreboard=scoreboard_html(m),
         bars=bars_html(m), matrix=matrix_html(m), cards=cards_html(m),
-        details=details_html(m),
+        judges=judges_html(m), details=details_html(m),
         caveats="".join("<li>%s</li>" % c for c in caveats))
     path = os.path.join(run_dir, "report.html")
     with open(path, "w", encoding="utf-8") as fh:
@@ -546,8 +656,17 @@ def render_summary(out_dir, run_dirs):
             if not vals:
                 cells.append("—")
             else:
-                cells.append("%.1f <span class='meta'>(%.1f–%.1f)</span>"
-                             % (sum(vals) / len(vals), min(vals), max(vals)))
+                mean = sum(vals) / len(vals)
+                if len(vals) >= 2:
+                    sd = (sum((v - mean) ** 2 for v in vals)
+                          / (len(vals) - 1)) ** 0.5
+                    cells.append(
+                        "%.1f <span class='meta'>±%.1f sd "
+                        "(%.1f–%.1f, n=%d)</span>"
+                        % (mean, sd, min(vals), max(vals), len(vals)))
+                else:
+                    cells.append("%.1f <span class='meta'>(n=1)</span>"
+                                 % mean)
         rows.append("<tr><th>%s</th>%s</tr>" % (
             esc(label), "".join("<td class='num'>%s</td>" % c for c in cells)))
     runs_list = "".join(
