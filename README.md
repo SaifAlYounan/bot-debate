@@ -1,4 +1,4 @@
-# argbench
+# bot-debate
 
 A single-file-per-concern benchmark pipeline that compares four
 argument-mapping architectures on one debatable question, has the four
