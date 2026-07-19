@@ -186,10 +186,15 @@ def _call_claude_cli(model, prompt, system, temperature, max_tokens,
       --tools ""                disable ALL built-in tools
       --no-session-persistence  do not write a resumable session
       --system-prompt <s>       replace the default (large) system prompt
-    max_tokens is enforced via CLAUDE_CODE_MAX_OUTPUT_TOKENS; note the CLI
-    FAILS the call when the model would exceed the cap (it does not return
-    truncated text the way the raw API does). temperature is NOT settable
-    through the CLI; it is recorded as null in call params.
+    max_tokens is enforced via CLAUDE_CODE_MAX_OUTPUT_TOKENS. The CLI does
+    NOT truncate at the cap the way the raw API does: it either errors
+    (is_error) or internally continues across multiple iterations and
+    returns ONLY the final segment in `result` — silently losing the
+    earlier text. Both cases are treated as a loud FAILURE here (checked
+    via usage.iterations), never as usable content. Set max_tokens
+    generously with this executor, or use executor=api for true
+    truncation semantics. temperature is NOT settable through the CLI;
+    it is recorded as null in call params.
     Retries here cover subprocess timeouts and unparseable output only —
     the CLI already retries transient API errors internally.
     """
@@ -219,6 +224,19 @@ def _call_claude_cli(model, prompt, system, temperature, max_tokens,
             raise CallFailed("claude CLI error: %s" % data.get("result", ""),
                              None, attempt)
         usage = data.get("usage") or {}
+        iterations = usage.get("iterations") or []
+        if len(iterations) > 1:
+            # the response hit the output-token cap and the CLI continued
+            # internally; `result` holds only the last segment, so the
+            # full text is unrecoverable — fail loudly, never save a
+            # silent fragment
+            raise CallFailed(
+                "claude CLI response hit the %d output-token cap and was "
+                "internally continued across %d iterations; only the final "
+                "segment is returned, so the complete text is lost. Marking "
+                "FAILED — raise max_tokens for this executor or use "
+                "executor=api." % (max_tokens, len(iterations)),
+                None, attempt)
         in_tok = usage.get("input_tokens")
         cache_create = usage.get("cache_creation_input_tokens") or 0
         cache_read = usage.get("cache_read_input_tokens") or 0

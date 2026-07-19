@@ -9,9 +9,14 @@
 #   claude_cli (default) — shells out to `claude -p` on your existing
 #                          Claude Code auth; exact usage from the CLI JSON.
 #                          NOTE: temperature is not settable through the CLI
-#                          (recorded as null); max_tokens is enforced via
-#                          CLAUDE_CODE_MAX_OUTPUT_TOKENS and the CLI FAILS a
-#                          call that would exceed it rather than truncating.
+#                          (recorded as null). max_tokens is enforced via
+#                          CLAUDE_CODE_MAX_OUTPUT_TOKENS, and the CLI does
+#                          NOT truncate at the cap: a cap-hit is detected
+#                          (via usage.iterations) and the call is marked
+#                          FAILED, because the CLI would otherwise silently
+#                          drop the earlier part of the text. Set generous
+#                          caps with this executor; use executor=api for
+#                          true truncation semantics.
 #   api                  — direct HTTPS to the Anthropic Messages API,
 #                          requires ANTHROPIC_API_KEY.
 executor: claude_cli
