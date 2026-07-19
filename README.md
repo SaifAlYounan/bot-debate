@@ -29,6 +29,16 @@ arm 3 isolates persona-splitting, arm 2 vs arm 4 isolates vendor
 diversity, and arm 1 vs arm 2 (sampling-paired) isolates the debate
 transcript.
 
+**Interpretation footnote for Arm 4:** when the arm-4 persona model and the
+EDITOR are the same model (or the same provider family), arm 4's merged
+output carries a self-consistency bonus that arms 1/2 do not get — the
+editor is merging text sampled from its own distribution. Arm 4 vs arm 3
+therefore measures persona-splitting *plus* same-model consistency; if
+arm 4 outperforms arm 3, part of that win may be self-consistency rather
+than topology. The headline metric is unaffected; read the comparison with
+this footnote in mind (the report auto-stamps a caveat whenever the models
+overlap).
+
 **Fairness invariants (enforced in code):** identical roster for arms 1 and 2;
 one EDITOR model for synthesis, gap critic, and debate-synth across ALL
 arms; one set of generation parameters everywhere; and the JUDGE must come
@@ -130,7 +140,11 @@ a union of semantically distinct arguments (`found_in` per system), per-system
 or authorities) / `depth` (1–5), and a blind verdict. The JSON is validated in
 code; one repair attempt is allowed, after which judging is marked FAILED.
 `distinct` and `unique` are always recomputed from the union matrix and the
-recomputed values are preferred over the judge's own arithmetic.
+recomputed values are preferred over the judge's own arithmetic. The full
+audit trail lives on disk: `judge/judge.json` keeps the judge's original
+numbers alongside the recomputed ones (`distinct_claimed` /
+`unique_claimed`), and every correction is logged as a warning in
+`run_meta.json`. The report always uses the recomputed values.
 
 Headline metric: **EFFICIENCY = (distinct − suspect) per 10,000 total tokens**.
 `CORE` = union arguments found by all four systems.
