@@ -1,81 +1,84 @@
 # argbench
 
-A benchmarking pipeline that compares four **argument-mapping
-architectures** on a single debatable proposition, scores them with a blind
-judge, and reports exact token and dollar cost per architecture — designed to
-be audited: every prompt, raw reply, mapping, and metric is written to disk,
-and the HTML report can be regenerated from the run directory alone.
+A single-file-per-concern benchmark pipeline that compares four
+argument-mapping architectures on one debatable question, has the four
+final argument lists scored by a blind LLM judge, and renders a
+self-contained HTML report. Every prompt and raw reply is written to disk
+before and after each call, every call is logged to `calls.jsonl` with
+token counts and cost, and the report can be regenerated from the run
+directory alone.
 
 ## The four arms
 
-| Arm | Architecture | How it works |
+| Arm | Name | What the code does |
 |---|---|---|
-| **1 — DEBATE** | Shared transcript | N role agents generate independently, then debate for further rounds. Each round every agent sees the full transcript with authors re-anonymised under a fresh random `Participant A/B/C…` mapping (saved to disk per round), rebuts weak entries by ID, defends its own, and adds new ones. An EDITOR model then produces a deduplicated master list, tags entries that survived attack `TESTED: yes`, and lists killed entries in a `GRAVEYARD` section. |
-| **2 — EXAM + EXAMINER** | Isolated | The same role-model roster generates independently (no transcript, ever). The EDITOR merges duplicates into a master list tagged `CONV: k` (how many roles independently produced each claim), then a GAP CRITIC — which sees only the master list — appends missing arguments as `CRITIC-n` entries and names the 3 weakest. Critic output is appended mechanically, never rewritten. |
-| **3 — SOLO CONTROL** | One call | A single Anthropic model runs a multi-pass self-interrogation prompt covering all roles' lenses. No subcalls. |
-| **4 — PERSONA CONTROL** | Single model, exam topology | The same model as Arm 3 plays every role through the exact Arm-2 topology: isolated per-role generation, then the shared EDITOR's synthesis and gap critic. |
+| **1 — DEBATE** | shared transcript | The role agents' round-1 outputs (see *paired design* below) are followed by debate rounds 2..R. In each round every agent receives the full transcript with all authors re-anonymised under a fresh random `Participant A/B/C…` mapping (saved to `arm1/round<r>_mapping.json`), and is instructed to rebut entries by ID, defend its own, and add new ones. A separate EDITOR model then merges the transcript into a master list, tags entries that survived rebuttal `TESTED: yes`, and lists killed entries under a `GRAVEYARD` heading. The editor receives a fully de-anonymised transcript (role names restored) so rebuttal targets are resolvable. |
+| **2 — EXAM + EXAMINER** | isolated | The same round-1 outputs, with no transcript ever shared. The EDITOR merges them into a master list where each entry carries `CONV: k` (how many role lists independently produced the claim) and `SOURCES` (the merged entry IDs). A GAP CRITIC call — same EDITOR model, input is the master list only — appends missing arguments as `CRITIC-n` entries and names the 3 weakest. The critic's output is concatenated onto the master list mechanically; nothing is rewritten. |
+| **3 — SOLO CONTROL** | one call | A single model (`solo` in config) answers one multi-pass self-interrogation prompt that covers all the roles' lenses. Minimum entry count is `8 × number-of-roles`. |
+| **4 — PERSONA CONTROL** | single model, exam topology | The `solo` model generates a fresh isolated round playing each role (same prompts as the shared round 1), then goes through the identical arm-2 tail: EDITOR synthesis plus gap critic. |
 
-**Paired design:** round-1 generations are produced once and reused as both
-Arm 1's round 1 and Arm 2's generation phase. Their tokens and cost are
-attributed to *both* arms, so sampling luck is held constant and only the
-topology differs. Arm costs therefore do not sum to total spend. Arm 4
-generates its own single-model round (it cannot share the diverse-roster
-generations by definition), so it is not sampling-paired with arms 1/2.
+**Paired design.** Round-1 generations are produced once (`gen/`) and reused
+as both arm 1's first round and arm 2's generation phase. Their tokens,
+cost and wall-clock are attributed to *both* arms in the report, so arm
+costs do not sum to total spend. Arm 4 generates its own single-model round
+and is not sampling-paired with arms 1/2.
 
-**Why Arm 4 exists:** arms 1/2 versus arm 3 change two things at once —
-topology *and* vendor diversity — so a multi-agent win would be
-unattributable. The persona control completes the comparison: arm 4 vs
-arm 3 isolates persona-splitting, arm 2 vs arm 4 isolates vendor
-diversity, and arm 1 vs arm 2 (sampling-paired) isolates the debate
-transcript.
+**Why arm 4 exists.** Arms 1/2 differ from arm 3 in two ways at once —
+topology and model diversity. Arm 4 (one model, arm-2 topology) completes
+the square: arm 4 vs arm 3 isolates persona-splitting, arm 2 vs arm 4
+isolates model diversity, arm 1 vs arm 2 (sampling-paired) isolates the
+debate transcript.
 
-**Interpretation footnote for Arm 4:** when the arm-4 persona model and the
-EDITOR are the same model (or the same provider family), arm 4's merged
-output carries a self-consistency bonus that arms 1/2 do not get — the
-editor is merging text sampled from its own distribution. Arm 4 vs arm 3
-therefore measures persona-splitting *plus* same-model consistency; if
-arm 4 outperforms arm 3, part of that win may be self-consistency rather
-than topology. The headline metric is unaffected; read the comparison with
-this footnote in mind (the report auto-stamps a caveat whenever the models
-overlap).
-
-**Fairness invariants (enforced in code):** identical roster for arms 1 and 2;
-one EDITOR model for synthesis, gap critic, and debate-synth across ALL
-arms; one set of generation parameters everywhere; and the JUDGE must come
-from a provider
-outside the generation roster — a violation refuses to run without `--force`
-and stamps a self-preference caveat into the report.
+**Fairness invariants enforced in code:** arms 1 and 2 share one roster
+object by construction; one EDITOR model performs synthesis, gap critic and
+debate-synth across all arms; one set of generation parameters is used
+everywhere; and the judge's *provider* must not appear in the generation
+roster — an overlap aborts the run unless `--force` is given, and a forced
+run carries a self-preference caveat in `run_meta.json` and the report.
 
 ## Files
 
 ```
-argbench.py    CLI + pipeline: intake, preflight cost estimate, the four arms,
-               anonymisation, blind judging with schema validation + one repair
-               attempt, calls.jsonl accounting
-providers.py   raw-HTTPS adapters (no SDKs): anthropic (claude_cli / api),
-               openai, google (Gemini), deepseek, mistral, xai; retries with
-               exponential backoff + jitter; secret redaction; --list-models;
-               offline mock provider
-report.py      renders report.html / summary.html from the run directory on
-               disk alone (standalone: python3 report.py runs/<timestamp>)
-config.yaml    roster, editor/solo/judge models, params, prices, retries
-fixtures/      canned deterministic outputs for the offline --mock gate
+argbench.py    CLI + pipeline: intake, preflight estimate, the four arms,
+               anonymisation, blind judging with schema validation + one
+               repair attempt, calls.jsonl accounting, --mock self-check
+providers.py   raw-HTTPS adapters (requests, no SDKs): anthropic (via the
+               claude CLI or the Messages API), openai, google (Gemini),
+               deepseek, mistral, xai; retries with exponential backoff +
+               jitter; secret redaction; model listing; offline mock
+report.py      renders report.html / summary.html from a run directory
+               alone (python3 report.py runs/<timestamp>)
+config.yaml    executor, roster, editor/solo/judge models, params, prices,
+               retries, default run count
+fixtures/      canned outputs for the offline --mock gate (see
+               fixtures/README.md, including deliberately planted defects)
 ```
 
-Dependencies: Python 3.11+, `requests`, `pyyaml`. Nothing else.
+Dependencies: Python 3.11+, `requests`, `pyyaml`.
 
 ## Setup
 
-1. Export API keys for the providers you use (environment only — keys are
-   never written to disk, and every log/error path is redacted):
-   `ANTHROPIC_API_KEY` (only if `executor: api`), `OPENAI_API_KEY`,
-   `GEMINI_API_KEY`, `DEEPSEEK_API_KEY`, `MISTRAL_API_KEY`, `XAI_API_KEY`.
-2. Discover model IDs — they drift, so none are guessed:
+1. Export API keys for the providers you use. Keys are read from the
+   environment inside `providers.py` only and never written to disk:
+   `ANTHROPIC_API_KEY` (needed for `executor: api` and for listing
+   Anthropic models), `OPENAI_API_KEY`, `GEMINI_API_KEY`,
+   `DEEPSEEK_API_KEY`, `MISTRAL_API_KEY`, `XAI_API_KEY`.
+2. Discover current model IDs (none are hard-coded or guessed):
    ```
    python3 argbench.py --list-models
    ```
-3. Fill every `SET_ME` in `config.yaml` (roster, editor, solo, judge, and the
-   per-model `prices` table with its `as_of` date).
+   This queries each provider whose key is present and prints the IDs.
+3. Replace every `SET_ME` in `config.yaml`: the five roster entries, the
+   `editor`, `solo` and `judge` models, and the per-model `prices` table
+   with its `as_of` date. All dollar figures in the report come from this
+   table; a model without a price entry is logged with `cost_usd: null`
+   and flagged in the report, never estimated.
+
+If a roster entry is unusable (missing key or still `SET_ME`), remaining
+usable models are assigned round-robin with a logged warning that model
+diversity is reduced. If nothing in the roster is usable, the editor or
+solo entry is used for all roles — the run proceeds but the "diverse
+roster" premise no longer holds; the warnings say so.
 
 ## Running
 
@@ -83,173 +86,224 @@ Dependencies: Python 3.11+, `requests`, `pyyaml`. Nothing else.
 python3 argbench.py "Should offices ban meetings on Fridays?" [options]
 ```
 
-Interactive intake (each step skippable via flags) confirms the debatable
-question (`--question`), shared context (`--context`, inline text or a file
-path), the two topic lenses (`--lens-a`, `--lens-b`; ADVOCATE, OPPONENT and
-SKEPTIC are fixed), and scale: `--quick` = 3 roles, 2 rounds; default full =
-5 roles, 3 rounds.
+When stdin is a TTY, an interactive intake confirms each input; each step
+can be skipped with a flag. With no TTY, defaults are used silently.
 
-Before any spend, a preflight prints an upper-bound cost estimate per arm from
-prompt sizes, `max_tokens` caps and the prices table, and asks for
-confirmation (`--yes` to accept, `--dry-run` to stop there).
+| Flag | Effect |
+|---|---|
+| `--question` | the debatable question (default: the proposition, with `?` appended if absent) |
+| `--context` | shared context given verbatim to every agent; if the value is a path to an existing file, the file's contents are used |
+| `--lens-a`, `--lens-b` | descriptions for the two topic-specific roles (defaults: an economist; an unconsulted affected third party). ADVOCATE, OPPONENT and SKEPTIC are fixed |
+| `--quick` | 3 roles, 2 debate rounds (default full scale: 5 roles, 3 rounds) |
+| `--runs N` | run the whole pipeline N times (also settable as `runs:` in config); each run gets its own directory and a `summary.html` aggregates them |
+| `--dry-run` | stop after the preflight estimate; nothing is spent |
+| `--yes` | skip the preflight confirmation prompt |
+| `--force` | proceed despite judge/roster provider overlap (stamps a caveat) |
+| `--mock` | offline run against `fixtures/`, zero network (see below) |
+| `--config`, `--out-dir` | paths (defaults `config.yaml`, `runs/`) |
+| `--list-models` | print available model IDs per provider, then exit |
 
-Other flags: `--runs N` (each run in its own directory plus an aggregate
-`summary.html`), `--force` (override the judge/roster overlap check),
-`--mock` (full offline run against `fixtures/`, zero network), `--config`,
-`--out-dir`.
+Before any API call, a preflight prints an upper-bound cost estimate per
+arm, computed from prompt sizes (a chars/4 token approximation used only
+here), the `max_tokens` caps, and the prices table, then asks for
+confirmation. Models missing from the prices table are named and excluded
+from the bound.
 
 ## Executors for Anthropic calls
 
-- **`claude_cli`** (default): shells out to `claude -p --output-format json`
-  on your existing Claude Code login. Exact **usage** (token counts) comes
-  from the CLI's JSON; every **dollar figure** is computed from the config
-  `prices` table (the scoreboard row is labelled "Cost USD (prices table)"),
-  and the CLI's own `total_cost_usd` is stored per call as
-  `cli_reported_cost_usd` in `calls.jsonl` as an independent cross-check —
-  the two can differ by ~10%. Note the CLI folds cache-creation/read tokens
-  into `input_tokens`, so claude_cli input/cost figures are not directly
-  comparable with raw-API arms. Two further caveats, both recorded in each
-  call's params: temperature is not settable through the CLI (logged as
-  `null`), and the CLI does **not** truncate at an output cap — a call that
-  hits `max_tokens` (enforced via `CLAUDE_CODE_MAX_OUTPUT_TOKENS`) is
-  detected through `usage.iterations` and marked FAILED rather than silently
-  saving a fragment. Rule of thumb: set `max_tokens` 30–50% above what you would use with the direct API — a cap-hit costs a full failed call, not a truncated reply.
-- **`api`**: direct HTTPS to the Anthropic Messages API using
+Set `executor:` in `config.yaml`.
+
+- **`claude_cli`** (default) shells out to
+  `claude -p --output-format json --tools "" --no-session-persistence
+  --strict-mcp-config --system-prompt …` on your existing Claude Code
+  login, from a freshly created empty temp directory so the CLI cannot
+  pick up a `CLAUDE.md`, project memory, or MCP servers. Flags were
+  verified against claude CLI 2.1.211 and may drift with CLI versions.
+  Specific behavior, all recorded per call:
+  - **temperature is not settable** through the CLI; it is logged as
+    `null` in the call's params.
+  - **max_tokens** is enforced via `CLAUDE_CODE_MAX_OUTPUT_TOKENS`. The
+    CLI does not truncate at the cap: it either errors or internally
+    continues across multiple iterations, returning only the final
+    segment. Both cases are detected (`is_error`, or
+    `usage.iterations > 1`) and the call is marked FAILED — a cap hit
+    costs a whole failed call rather than yielding a truncated reply, so
+    set caps generously with this executor.
+  - token counts come from the CLI's JSON `usage`;
+    cache-creation/cache-read tokens are folded into `input_tokens`
+    (recorded separately too), so input/cost figures are not directly
+    comparable with raw-API arms.
+  - the CLI's own `total_cost_usd` is stored as `cli_reported_cost_usd`
+    per call as a cross-check; the report's dollar figures always come
+    from the config prices table.
+  - the CLI injects a small preamble of its own that is **not** captured
+    in the saved `p-*.txt` prompts; the report stamps a caveat whenever
+    this executor was used. For strictly reproducible prompts use
+    `executor: api`.
+- **`api`** calls the Anthropic Messages API directly over HTTPS with
   `ANTHROPIC_API_KEY`, with normal truncation semantics.
 
-All other providers use direct HTTPS chat/completions-style calls. Token
-counts always come from each provider's `usage` field; if a provider omits it
-the tokens are recorded as `null` and flagged in the report — never estimated.
+All other providers use direct HTTPS chat/completions-style calls
+(Gemini uses `generateContent`; the API key travels in a header, never in
+the URL). For OpenAI-compatible endpoints, a 400 rejecting `max_tokens` or
+`temperature` triggers a single deterministic re-issue
+(`max_completion_tokens`, or the parameter dropped), noted in the call's
+params. Token counts always come from the provider's `usage` field; when
+a provider omits it, tokens are recorded as `null` and the affected arm's
+totals are flagged as understated in the report — never estimated.
 
 ## On-disk layout
 
 ```
 runs/<UTC timestamp>/
-  config_resolved.yaml      exact config used (secrets excluded by construction)
+  config_resolved.yaml        exact resolved config, roster, question,
+                              context, lenses, seed (keys are never in the
+                              config object, so none can be written)
   gen/ arm1/ arm2/ arm3/ arm4/ judge/
-    p-<name>.txt            every prompt, saved before its call
-    o-<name>.txt            every raw reply, verbatim
-    o-<name>.FAILED.txt     written instead when a call fails (redacted
-                            error banner; content is never substituted)
-  arm1/round<r>_mapping.json  per-round anonymisation mappings
+    p-<name>.txt              every prompt, saved before its call
+    o-<name>.txt              every raw reply, verbatim
+    o-<name>.FAILED.txt       written instead on failure (redacted error
+                              banner; content is never substituted)
+  arm1/round<r>_mapping.json  per-round anonymisation mapping (role→letter)
+  arm1..4/final.txt           each arm's final list
   judge/blind_mapping.json    which arm was SYSTEM-A/B/C/D
-  calls.jsonl               one line per call: tokens, cost, latency, retries,
-                            params, failed flag
-  run_meta.json             phase wall-clocks, seed, warnings, failed calls
+  judge/judge.json            validated judge output + recompute audit trail
+  calls.jsonl                 one line per call: ts, arm, phase, role,
+                              provider, model, file paths, input/output
+                              tokens, cost_usd, latency_ms, http_status,
+                              retries, params, failed (+ error, cost_note,
+                              cli_reported_cost_usd when applicable)
+  run_meta.json               phase wall-clocks, seed, warnings, failed
+                              calls, judging_failed
   report.html
 ```
 
+`python3 report.py runs/<timestamp>` re-renders the report from these
+files alone; `python3 report.py --summary runs <dir> <dir>…` re-renders
+the multi-run summary.
+
 ## Judging and metrics
 
-The judge receives the four final lists as `SYSTEM-A/B/C/D` in a saved random
-order, with no arm names, counts or metadata attached. One inherent limit,
-disclosed in every report: the lists' own structural markers (`GRAVEYARD`/
-`TESTED` in arm 1, `CONV:`/`CRITIC-n` in arms 2 and 4) can reveal the
-architecture *family* to the judge — the blinding hides identity and order,
-not format. The judge must return strict JSON:
-a union of semantically distinct arguments (`found_in` per system), per-system
-`distinct` / `unique` / `suspect` (entries that invent facts, cases, statistics
-or authorities) / `depth` (1–5), and a blind verdict. The JSON is validated in
-code; one repair attempt is allowed, after which judging is marked FAILED.
-`distinct` and `unique` are always recomputed from the union matrix and the
-recomputed values are preferred over the judge's own arithmetic. `suspect`
-and `depth` cannot be recomputed from the union matrix and are taken verbatim
-from the judge — note the EFFICIENCY headline depends on the un-recomputed
-`suspect`. The full audit trail lives on disk: `judge/judge.json` keeps the judge's original
-numbers alongside the recomputed ones (`distinct_claimed` /
-`unique_claimed`), and every correction is logged as a warning in
-`run_meta.json`. The report always uses the recomputed values.
+The judge receives the four final lists as `SYSTEM-A/B/C/D` in a random
+order (mapping saved to disk), with no arm names or metadata. It must
+return strict JSON: a union of semantically distinct arguments with
+`found_in` per system, and per-system `distinct`, `unique`, `suspect`
+(entries whose REASONING/DEFEATER invent facts, cases, statistics or
+authorities), `depth` (1–5) and notes, plus a blind verdict. The JSON is
+schema-validated in code; on failure one repair attempt is made with the
+errors quoted back, after which judging is marked FAILED.
 
-Headline metric: **EFFICIENCY = (distinct − suspect) per 10,000 total tokens**.
-`CORE` = union arguments found by all four systems.
+`distinct` and `unique` are recomputed from the union matrix and the
+recomputed values are used everywhere; the judge's originals are preserved
+as `distinct_claimed` / `unique_claimed` in `judge/judge.json` and every
+correction is logged as a warning. `suspect` and `depth` cannot be
+recomputed and are taken verbatim from the judge.
 
-The report is a single self-contained HTML file (inline CSS, no JS, printable):
-blind verdict + un-blinding line, a scoreboard with winner marks per row, the
-headline bar chart, a coverage matrix with CORE banding and unique finds
-highlighted, depth-and-grounding cards, each arm's final list verbatim, links
-to the raw files, and a footer of caveats (single-run noise below 3 runs,
-prices as-of date, paired-design note, self-preference caveat when forced,
-and any FAILED cells).
+Headline metric: **EFFICIENCY = (distinct − suspect) per 10,000 total
+tokens** for the arm. It is only computed when the arm's token counts are
+complete; otherwise the cell shows `—`. `CORE` = union arguments found by
+all four systems. Coverage % = distinct / union size.
+
+The report is one self-contained HTML file (inline CSS, no JS): blind
+verdict with un-blinding line, a scoreboard with per-row winner marks, the
+efficiency bar chart, a coverage matrix with CORE banding and unique finds
+highlighted, per-arm judge cards, each arm's final list verbatim, links to
+every raw file, and an auto-stamped caveat footer (single-run noise,
+prices as-of date, paired-design note, blinding-format note, arm-4
+same-model/same-provider consistency note when applicable, claude_cli
+note when applicable, self-preference note on forced runs, and any FAILED
+cells).
 
 ## Failure behavior
 
-Calls retry at most 3 times with exponential backoff + jitter on 429/5xx/
-timeouts. On final failure the cell is marked FAILED in `calls.jsonl` and the
-report; content is never substituted and retries never continue silently. If
-an arm produces no final list, judging for that run is marked FAILED.
+HTTP calls retry up to `retries.max` (default 3) times with exponential
+backoff plus jitter on 429/5xx/timeouts (per-attempt HTTP timeout 240 s;
+CLI subprocess timeout 600 s — CLI retries cover subprocess timeout and
+unparseable output only, since the CLI retries API errors internally). On
+final failure the call is marked FAILED in `calls.jsonl` and an
+`o-*.FAILED.txt` banner is written; content is never substituted. If all
+round-1 generations fail the run aborts. If any arm produces no final
+list, judging is skipped and marked FAILED; the report renders with empty
+judge-derived rows.
 
-## Deployment checklist (user-side)
+Every error message, log line and failure banner passes through a
+redaction layer that scrubs the exact key values from the environment plus
+common header/token shapes (`Authorization`, `x-api-key`,
+`x-goog-api-key`, `Bearer …`, `sk-…`, `AIza…`, `xai-…`).
 
-Things the pipeline cannot do for you. Work through these before quoting any
-result externally:
-
-1. **Keys and models.** Export your provider keys, run
-   `python3 argbench.py --list-models`, and fill every `SET_ME` in
-   `config.yaml` — including the `prices` table with a current `as_of` date.
-2. **Judge from outside the roster.** Pick a judge provider not in the
-   generation roster. `--force` exists for degraded testing only; every forced
-   run carries a self-preference caveat in its report.
-3. **Executor choice is a validity choice.** For results you will quote, use
-   `executor: api`. The `claude_cli` executor runs on your Claude Code login
-   but injects a small machine-local preamble that is not captured in the
-   saved `p-*.txt` prompts (argbench minimises it by running the CLI from an
-   empty directory with MCP disabled, and the report is stamped with a
-   caveat) — convenient, but not strictly reproducible across machines.
-4. **Cap sizing under `claude_cli`.** The CLI does not truncate at
-   `max_tokens` — a cap hit FAILS the call and wastes a full call cycle.
-   Rule of thumb: set `max_tokens` 30–50% above what you would use with the direct API — a cap-hit costs a full failed call, not a truncated reply.
-   Use `executor: api` if you need true truncation semantics.
-5. **Re-verify the CLI contract on your machine** (it drifts between
-   versions):
-   `claude --help | grep -E 'tools|session|system-prompt|strict-mcp'`
-   then force a cap hit and confirm the failure is loud:
-   `echo "write 300 words on anything" | CLAUDE_CODE_MAX_OUTPUT_TOKENS=50 \
-   claude -p --output-format json --tools ""` — expect an error result or a
-   multi-entry `usage.iterations`, either of which argbench treats as FAILED.
-6. **Escalate in stages.** `--mock` first (offline, free), then one `--quick`
-   smoke run on a trivial proposition, then full scale. Use `--runs 3`
-   or more for anything you intend to quote — a single run is noise, and the
-   report footer says so.
-7. **Mind the context you paste at intake.** It is written to
-   `config_resolved.yaml` on disk and sent verbatim to every configured
-   provider. Do not paste privileged or confidential material you cannot
-   share with those vendors.
-8. **Reproduce the secrets audit locally.** Export a fake key (e.g.
-   `OPENAI_API_KEY=sk-test-123456789012345678`), run a mock or smoke, then
-   `grep -rE 'sk-|AIza|xai-' runs/` — expect zero hits. Caveat: raw model
-   replies (`o-*.txt`) are saved verbatim and unredacted by design;
-   redaction covers error paths, logs and metadata, so the zero-hits
-   expectation assumes models do not echo your keys back (they are never
-   sent any).
-
-Known limitations to keep in mind when reading transcripts: anonymisation
-replaces UPPERCASE role tokens, so a lowercase self-reference ("as the
-advocate…") can leak a role hint inside debate rounds; final lists retain
-role-prefixed `SOURCES` IDs, which reveal roles (not architectures) to the
-judge; and the lists' structural markers (`GRAVEYARD`, `CONV:`, `CRITIC-n`)
-can reveal the architecture family to the judge — see the blinding note in
-Judging and metrics.
-
-## Offline verification
+## Offline mock gate
 
 ```
 python3 argbench.py --mock "any proposition"
 ```
 
-runs the entire pipeline against canned deterministic fixtures with zero
-network access and produces a fully populated report. `--mock` implies
-`--force` for the judge-overlap check (the mock judge trivially overlaps the
-mock roster), so every mock report carries the self-preference caveat — useful for auditing
-the accounting and report logic without spending anything. The canned judge
-JSON deliberately contains one arithmetic error to exercise the
-recompute-and-prefer path.
+runs the entire pipeline against canned fixtures with zero network access:
+fixed seed 42, full scale forced, mock provider usage of 1 token per 4
+characters so the accounting is checkable by hand. `--mock` implies
+`--force` (the mock judge trivially overlaps the mock roster), so every
+mock report carries the self-preference caveat.
 
-Every `--mock` run ends with a self-check that fails the run loudly unless:
-`judge/judge.json` exists on disk and still passes the strict schema; the
-judge's claimed arithmetic is preserved next to the recomputed values
-(`distinct_claimed` / `unique_claimed`); at least one suspect entry was
-counted (locking the invented-facts fixtures); and arm 1's final list
-carries its `GRAVEYARD` (locking the debate-kill fixtures). The audit-trail
-and failure-mode claims above are therefore machine-verified on every mock
-run, not just documented. See `fixtures/README.md` for what each canned
-fixture contains, including the deliberately planted defects.
+The fixtures deliberately contain defects — one judge arithmetic error,
+unsourced statistics for the suspect count, and killed debate entries —
+so the recompute path, suspect counting and GRAVEYARD handling are
+exercised on every run. After each mock run a self-check fails the run
+loudly unless `judge/judge.json` exists and passes the schema, the
+claimed-vs-recomputed audit trail is preserved for all four systems, at
+least one suspect entry was counted, and arm 1's final list carries its
+GRAVEYARD. See `fixtures/README.md`. The CI workflow
+(`.github/workflows/mock-gate.yml`) runs exactly this on every push and
+pull request.
+
+## Limitations
+
+Everything below is a property of the current code, not a footnote.
+
+- **The judge is one LLM call and most of its output is unverifiable.**
+  Only the `distinct`/`unique` arithmetic is recomputed; the union itself
+  (which entries count as "the same argument"), `suspect` and `depth` are
+  the judge's unaudited opinion — and the headline EFFICIENCY metric
+  depends directly on `suspect`.
+- **Blinding is partial.** Anonymisation replaces UPPERCASE role tokens
+  and participant letters only, so a lowercase self-reference ("as the
+  advocate…") survives into debate transcripts; final lists keep
+  role-prefixed `SOURCES` IDs (revealing roles, not architectures, to the
+  judge); and structural markers (`GRAVEYARD`/`TESTED` in arm 1,
+  `CONV:`/`CRITIC-n` in arms 2 and 4) can reveal the architecture family.
+  The blinding hides identity and order, not format.
+- **A single run is noise.** One question, one judge sample per run. The
+  report footer says to treat nothing as significant below 3 runs; the
+  code provides `--runs` and a summary but no statistics beyond
+  mean/min/max and headline win counts.
+- **`claude_cli` results are not strictly reproducible.** The CLI injects
+  an uncaptured preamble, temperature cannot be set, cache tokens are
+  folded into input counts (breaking cross-executor comparability), and a
+  cap hit costs an entire failed call. All of this is stamped into the
+  report, but only `executor: api` avoids it.
+- **Costs are only as good as the config prices table.** The pipeline
+  multiplies provider-reported token counts by user-entered prices; the
+  only independent cross-check (`cli_reported_cost_usd`) exists for the
+  CLI executor. Unpriced models yield `null` cost, flagged as understated.
+- **The preflight estimate is a rough upper bound**, built from a chars/4
+  token approximation and worst-case `max_tokens`; unpriced models are
+  excluded from the bound entirely (with a warning).
+- **The mock gate does not cover the live adapters.** Provider HTTP
+  handling, the CLI cap-hit detection and the parameter-fallback paths
+  are only exercised with real keys.
+- **Raw replies are saved unredacted by design.** Redaction covers error
+  paths, logs and metadata; `o-*.txt` files are verbatim model output.
+  Anything you paste as context is written to `config_resolved.yaml` and
+  sent verbatim to every configured provider.
+- **`extract_json` is heuristic**: it strips markdown fences and falls
+  back to slicing from the first `{` to the last `}`. Failures are loud
+  (schema validation, then FAILED), but pathological judge output could
+  in principle parse to something unintended yet schema-valid.
+- **A `--context` value that happens to match an existing file path is
+  silently read as a file**, not used as literal text.
+- **Round-robin roster fill silently degrades diversity** (with a
+  warning): with missing keys, arms 1/2 can end up far less
+  model-diverse than the config suggests, weakening the arm-2-vs-arm-4
+  comparison.
+
+## License
+
+MIT — see `LICENSE`.
