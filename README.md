@@ -101,13 +101,19 @@ Other flags: `--runs N` (each run in its own directory plus an aggregate
 ## Executors for Anthropic calls
 
 - **`claude_cli`** (default): shells out to `claude -p --output-format json`
-  on your existing Claude Code login; exact usage and cost come from the CLI's
-  JSON. Two caveats, both recorded in each call's params: temperature is not
-  settable through the CLI (logged as `null`), and the CLI does **not**
-  truncate at an output cap — a call that hits `max_tokens` (enforced via
-  `CLAUDE_CODE_MAX_OUTPUT_TOKENS`) is detected through `usage.iterations` and
-  marked FAILED rather than silently saving a fragment. Set generous caps
-  with this executor.
+  on your existing Claude Code login. Exact **usage** (token counts) comes
+  from the CLI's JSON; every **dollar figure** is computed from the config
+  `prices` table (the scoreboard row is labelled "Cost USD (prices table)"),
+  and the CLI's own `total_cost_usd` is stored per call as
+  `cli_reported_cost_usd` in `calls.jsonl` as an independent cross-check —
+  the two can differ by ~10%. Note the CLI folds cache-creation/read tokens
+  into `input_tokens`, so claude_cli input/cost figures are not directly
+  comparable with raw-API arms. Two further caveats, both recorded in each
+  call's params: temperature is not settable through the CLI (logged as
+  `null`), and the CLI does **not** truncate at an output cap — a call that
+  hits `max_tokens` (enforced via `CLAUDE_CODE_MAX_OUTPUT_TOKENS`) is
+  detected through `usage.iterations` and marked FAILED rather than silently
+  saving a fragment. Set generous caps with this executor.
 - **`api`**: direct HTTPS to the Anthropic Messages API using
   `ANTHROPIC_API_KEY`, with normal truncation semantics.
 
@@ -123,6 +129,8 @@ runs/<UTC timestamp>/
   gen/ arm1/ arm2/ arm3/ arm4/ judge/
     p-<name>.txt            every prompt, saved before its call
     o-<name>.txt            every raw reply, verbatim
+    o-<name>.FAILED.txt     written instead when a call fails (redacted
+                            error banner; content is never substituted)
   arm1/round<r>_mapping.json  per-round anonymisation mappings
   judge/blind_mapping.json    which arm was SYSTEM-A/B/C/D
   calls.jsonl               one line per call: tokens, cost, latency, retries,
@@ -134,14 +142,20 @@ runs/<UTC timestamp>/
 ## Judging and metrics
 
 The judge receives the four final lists as `SYSTEM-A/B/C/D` in a saved random
-order, with no architecture names or metadata, and must return strict JSON:
+order, with no arm names, counts or metadata attached. One inherent limit,
+disclosed in every report: the lists' own structural markers (`GRAVEYARD`/
+`TESTED` in arm 1, `CONV:`/`CRITIC-n` in arms 2 and 4) can reveal the
+architecture *family* to the judge — the blinding hides identity and order,
+not format. The judge must return strict JSON:
 a union of semantically distinct arguments (`found_in` per system), per-system
 `distinct` / `unique` / `suspect` (entries that invent facts, cases, statistics
 or authorities) / `depth` (1–5), and a blind verdict. The JSON is validated in
 code; one repair attempt is allowed, after which judging is marked FAILED.
 `distinct` and `unique` are always recomputed from the union matrix and the
-recomputed values are preferred over the judge's own arithmetic. The full
-audit trail lives on disk: `judge/judge.json` keeps the judge's original
+recomputed values are preferred over the judge's own arithmetic. `suspect`
+and `depth` cannot be recomputed from the union matrix and are taken verbatim
+from the judge — note the EFFICIENCY headline depends on the un-recomputed
+`suspect`. The full audit trail lives on disk: `judge/judge.json` keeps the judge's original
 numbers alongside the recomputed ones (`distinct_claimed` /
 `unique_claimed`), and every correction is logged as a warning in
 `run_meta.json`. The report always uses the recomputed values.
@@ -202,13 +216,19 @@ result externally:
    share with those vendors.
 8. **Reproduce the secrets audit locally.** Export a fake key (e.g.
    `OPENAI_API_KEY=sk-test-123456789012345678`), run a mock or smoke, then
-   `grep -rE 'sk-|AIza|xai-' runs/` — expect zero hits.
+   `grep -rE 'sk-|AIza|xai-' runs/` — expect zero hits. Caveat: raw model
+   replies (`o-*.txt`) are saved verbatim and unredacted by design;
+   redaction covers error paths, logs and metadata, so the zero-hits
+   expectation assumes models do not echo your keys back (they are never
+   sent any).
 
 Known limitations to keep in mind when reading transcripts: anonymisation
 replaces UPPERCASE role tokens, so a lowercase self-reference ("as the
-advocate…") can leak a role hint inside debate rounds; and final lists retain
+advocate…") can leak a role hint inside debate rounds; final lists retain
 role-prefixed `SOURCES` IDs, which reveal roles (not architectures) to the
-judge.
+judge; and the lists' structural markers (`GRAVEYARD`, `CONV:`, `CRITIC-n`)
+can reveal the architecture family to the judge — see the blinding note in
+Judging and metrics.
 
 ## Offline verification
 
@@ -217,7 +237,9 @@ python3 argbench.py --mock "any proposition"
 ```
 
 runs the entire pipeline against canned deterministic fixtures with zero
-network access and produces a fully populated report — useful for auditing
+network access and produces a fully populated report. `--mock` implies
+`--force` for the judge-overlap check (the mock judge trivially overlaps the
+mock roster), so every mock report carries the self-preference caveat — useful for auditing
 the accounting and report logic without spending anything. The canned judge
 JSON deliberately contains one arithmetic error to exercise the
 recompute-and-prefer path.
