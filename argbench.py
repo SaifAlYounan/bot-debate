@@ -1084,7 +1084,7 @@ def cmd_list_models(cfg):
 def main(argv=None):
     ap = argparse.ArgumentParser(
         prog="argbench",
-        description="Three-architecture argument-mapping benchmark.")
+        description="Four-architecture argument-mapping benchmark.")
     ap.add_argument("proposition", nargs="?", help="the debatable proposition")
     ap.add_argument("--runs", type=int, default=None)
     ap.add_argument("--quick", action="store_true",

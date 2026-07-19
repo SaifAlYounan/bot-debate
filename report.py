@@ -392,7 +392,7 @@ def render_run_report(run_dir):
                                for l, a in sorted(m["blind"].items()))
         verdict_html = (
             "<div class='verdict'><div class='tag'>Blind verdict "
-            "(judge saw only SYSTEM-A/B/C, in random order)</div>"
+            "(judge saw only SYSTEM-A/B/C/D, in random order)</div>"
             "<p>%s</p></div><p class='meta'>Un-blinded mapping: %s "
             "(saved in <a href='judge/blind_mapping.json'>"
             "judge/blind_mapping.json</a>).</p>"
@@ -409,6 +409,11 @@ def render_run_report(run_dir):
         "total spend ($%s). Arm 4 (persona control) generated its own "
         "single-model round and is not sampling-paired with arms 1/2."
         % _fmt(m["total_cost_usd"], "usd").lstrip("$"),
+        "Blinding limit: the judge never sees arm names, counts or "
+        "metadata, but the final lists' own structural markers (GRAVEYARD/"
+        "TESTED in arm 1, CONV/CRITIC entries in arms 2 and 4) can reveal "
+        "the architecture family — the blinding hides identity and order, "
+        "not format.",
     ]
     solo_cfg = cfg.get("solo", {}) or {}
     ed_cfg = cfg.get("editor", {}) or {}
@@ -470,6 +475,7 @@ diversity.</p>
 reply (<span class="mono">o-*.txt</span>) is on disk:
 <a href="gen/">gen/</a> · <a href="arm1/">arm1/</a> ·
 <a href="arm2/">arm2/</a> · <a href="arm3/">arm3/</a> ·
+<a href="arm4/">arm4/</a> ·
 <a href="judge/">judge/</a> · <a href="calls.jsonl">calls.jsonl</a> ·
 <a href="config_resolved.yaml">config_resolved.yaml</a> ·
 <a href="run_meta.json">run_meta.json</a></p>
