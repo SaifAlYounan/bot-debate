@@ -417,15 +417,20 @@ def render_run_report(run_dir):
     ]
     solo_cfg = cfg.get("solo", {}) or {}
     ed_cfg = cfg.get("editor", {}) or {}
-    if solo_cfg.get("model") == ed_cfg.get("model") \
-            or solo_cfg.get("provider") == ed_cfg.get("provider"):
+    if solo_cfg.get("model") == ed_cfg.get("model"):
         caveats.append(
-            "Arm 4's persona generations and the editor share a "
-            "model/provider (%s/%s vs %s/%s): arm 4's result includes a "
-            "same-model consistency component, not pure persona-splitting "
-            "— read arm 4 vs arm 3 with that in mind."
+            "Arm 4's persona generations and the editor are the SAME model "
+            "(%s/%s): arm 4's result includes a same-model consistency "
+            "component, not pure persona-splitting — read arm 4 vs arm 3 "
+            "with that in mind."
+            % (esc(solo_cfg.get("provider")), esc(solo_cfg.get("model"))))
+    elif solo_cfg.get("provider") == ed_cfg.get("provider"):
+        caveats.append(
+            "Arm 4's persona model and the editor come from the same "
+            "provider family (%s: %s vs %s): a weaker same-family "
+            "consistency component may be present in arm 4's result."
             % (esc(solo_cfg.get("provider")), esc(solo_cfg.get("model")),
-               esc(ed_cfg.get("provider")), esc(ed_cfg.get("model"))))
+               esc(ed_cfg.get("model"))))
     if cfg.get("executor") == "claude_cli":
         caveats.append(
             "Anthropic calls used the claude_cli executor: the CLI injects "

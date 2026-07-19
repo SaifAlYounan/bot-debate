@@ -1056,6 +1056,32 @@ def execute_run(run_dir, cfg, args, question, context, roles, lens_a, lens_b,
     return run_dir
 
 
+def mock_self_check(run_dir):
+    """Prove on-disk delivery of the audit-trail contract after a --mock run:
+    judge/judge.json exists, still passes the strict schema, and preserves
+    the judge's claimed arithmetic next to the recomputed values. Fails the
+    run loudly if any part of the contract is missing."""
+    path = os.path.join(run_dir, "judge", "judge.json")
+    if not os.path.exists(path):
+        die("mock self-check FAILED: %s was not written" % path)
+    with open(path, "r", encoding="utf-8") as fh:
+        data = json.load(fh)
+    errs = validate_judge_json(data)
+    if errs:
+        die("mock self-check FAILED: judge.json violates schema: %s"
+            % "; ".join(errs[:5]))
+    for s in "ABCD":
+        for k in ("distinct_claimed", "unique_claimed"):
+            if k not in data["per_system"][s]:
+                die("mock self-check FAILED: per_system.%s.%s missing — "
+                    "claimed-vs-recomputed audit trail not preserved" % (s, k))
+    calls_path = os.path.join(run_dir, "calls.jsonl")
+    n_calls = sum(1 for line in open(calls_path, encoding="utf-8") if line.strip())
+    print("MOCK SELF-CHECK OK: judge.json present, schema-valid, "
+          "claimed-vs-recomputed audit trail preserved; %d calls logged"
+          % n_calls)
+
+
 def cmd_list_models(cfg):
     executor = cfg.get("executor", "claude_cli") if cfg else "claude_cli"
     any_key = False
@@ -1178,6 +1204,8 @@ def main(argv=None):
         seed = 42 if args.mock else random.SystemRandom().randint(0, 2**31)
         execute_run(run_dir, cfg, args, question, context, roles,
                     lens_a, lens_b, rounds, seed, list(notes))
+        if args.mock:
+            mock_self_check(run_dir)
         run_dirs.append(run_dir)
 
     if len(run_dirs) > 1:

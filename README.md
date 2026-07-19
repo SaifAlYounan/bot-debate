@@ -113,7 +113,9 @@ Other flags: `--runs N` (each run in its own directory plus an aggregate
   `null`), and the CLI does **not** truncate at an output cap — a call that
   hits `max_tokens` (enforced via `CLAUDE_CODE_MAX_OUTPUT_TOKENS`) is
   detected through `usage.iterations` and marked FAILED rather than silently
-  saving a fragment. Set generous caps with this executor.
+  saving a fragment. Rule of thumb: set caps 30–50% above what you would set
+  for the direct API, because a cap-hit costs you a full failed call cycle
+  instead of a truncated-but-usable reply.
 - **`api`**: direct HTTPS to the Anthropic Messages API using
   `ANTHROPIC_API_KEY`, with normal truncation semantics.
 
@@ -243,3 +245,12 @@ mock roster), so every mock report carries the self-preference caveat — useful
 the accounting and report logic without spending anything. The canned judge
 JSON deliberately contains one arithmetic error to exercise the
 recompute-and-prefer path.
+
+Every `--mock` run ends with a self-check that fails the run loudly unless
+`judge/judge.json` exists on disk, still passes the strict schema, and
+preserves the judge's claimed arithmetic (`distinct_claimed` /
+`unique_claimed`) next to the recomputed values — so the audit-trail claim
+in Judging and metrics is machine-verified on every mock run, not just
+documented. See `fixtures/README.md` for what each canned fixture contains,
+including the deliberately planted defects (unsourced statistics for the
+suspect count, GRAVEYARD kills, and the arithmetic error).
