@@ -3,7 +3,7 @@ SIDE: FOR
 CLAIM: A protected meeting-free day preserves deep work by removing calendar fragmentation.
 REASONING: Long uninterrupted stretches are the binding input for knowledge work. Three roles independently identified the same mechanism.
 DEFEATER: Evidence that fragmented calendars do not reduce measured output for most roles.
-CONV: 3
+CONV: 2
 SOURCES: ADVOCATE-1, ADVOCATE-2, LENS_A-4
 
 ID: M-2
@@ -27,7 +27,7 @@ SIDE: FOR
 CLAIM: A collective rule solves the focus-time assurance problem individuals cannot solve alone.
 REASONING: Individually declined meetings still impose fragmentation through shared work; only a common rule changes the equilibrium. It doubles as a commitment device against over-booking bias.
 DEFEATER: Evidence that informal norms already protect focus blocks without a rule.
-CONV: 2
+CONV: 1
 SOURCES: LENS_A-4, LENS_A-7
 
 ID: M-5
@@ -124,7 +124,7 @@ SIDE: REFRAME
 CLAIM: The evidence base is selection-biased and the preference data unreliable.
 REASONING: Adopting firms differ systematically from non-adopters, and stated meeting preferences diverge from revealed behaviour.
 DEFEATER: A randomised or quasi-experimental study isolating the policy effect.
-CONV: 2
+CONV: 1
 SOURCES: SKEPTIC-4, SKEPTIC-8
 
 ID: M-17

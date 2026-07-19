@@ -18,9 +18,10 @@
 #                          NOT truncate at the cap: a cap-hit is detected
 #                          (via usage.iterations) and the call is marked
 #                          FAILED, because the CLI would otherwise silently
-#                          drop the earlier part of the text. Set generous
-#                          caps with this executor; use executor=api for
-#                          true truncation semantics.
+#                          drop the earlier part of the text. Rule of thumb:
+#                          set max_tokens 30-50% above what you would use
+#                          with the direct API; use executor=api for true
+#                          truncation semantics.
 #   api                  — direct HTTPS to the Anthropic Messages API,
 #                          requires ANTHROPIC_API_KEY.
 executor: claude_cli

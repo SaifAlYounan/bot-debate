@@ -1056,6 +1056,54 @@ def execute_run(run_dir, cfg, args, question, context, roles, lens_a, lens_b,
     return run_dir
 
 
+def mock_self_check(run_dir):
+    """Machine-verify, after every --mock run, the audit-trail and
+    failure-mode-fixture contracts that the README claims:
+      1. judge/judge.json exists on disk;
+      2. it still passes the strict judge schema;
+      3. the judge's claimed arithmetic is preserved next to the recomputed
+         values (distinct_claimed / unique_claimed for all of A-D);
+      4. the fixtures still exercise the failure modes: at least one suspect
+         entry is counted, and arm 1's final list carries a GRAVEYARD.
+    Fails the run loudly on any violation."""
+    judge_path = os.path.join(run_dir, "judge", "judge.json")
+    if not os.path.exists(judge_path):
+        hint = ""
+        failed_marker = os.path.join(run_dir, "judge", "FAILED.txt")
+        if os.path.exists(failed_marker):
+            hint = (" — judging FAILED upstream; see judge/FAILED.txt and "
+                    "run_meta.json warnings for the real cause")
+        die("mock self-check FAILED: %s was not written%s"
+            % (judge_path, hint))
+    with open(judge_path, "r", encoding="utf-8") as fh:
+        data = json.load(fh)
+    errs = validate_judge_json(data)
+    if errs:
+        die("mock self-check FAILED: judge.json violates schema: %s"
+            % "; ".join(errs[:5]))
+    for s in "ABCD":
+        for k in ("distinct_claimed", "unique_claimed"):
+            if k not in data["per_system"][s]:
+                die("mock self-check FAILED: per_system.%s.%s missing — "
+                    "claimed-vs-recomputed audit trail not preserved" % (s, k))
+    total_suspect = sum(data["per_system"][s]["suspect"] for s in "ABCD")
+    if total_suspect <= 0:
+        die("mock self-check FAILED: fixtures no longer exercise the "
+            "invented-facts failure mode (total suspect count is 0)")
+    arm1_final = os.path.join(run_dir, "arm1", "final.txt")
+    if not os.path.exists(arm1_final):
+        die("mock self-check FAILED: arm1/final.txt missing")
+    with open(arm1_final, "r", encoding="utf-8") as fh:
+        if "GRAVEYARD" not in fh.read():
+            die("mock self-check FAILED: fixtures no longer exercise the "
+                "debate-kill failure mode (no GRAVEYARD in arm 1's final)")
+    with open(os.path.join(run_dir, "calls.jsonl"), encoding="utf-8") as fh:
+        n_calls = sum(1 for line in fh if line.strip())
+    print("MOCK SELF-CHECK OK: judge.json present and schema-valid; "
+          "claimed-vs-recomputed audit trail preserved; suspect and "
+          "GRAVEYARD failure-mode fixtures intact; %d calls logged" % n_calls)
+
+
 def cmd_list_models(cfg):
     executor = cfg.get("executor", "claude_cli") if cfg else "claude_cli"
     any_key = False
@@ -1178,6 +1226,8 @@ def main(argv=None):
         seed = 42 if args.mock else random.SystemRandom().randint(0, 2**31)
         execute_run(run_dir, cfg, args, question, context, roles,
                     lens_a, lens_b, rounds, seed, list(notes))
+        if args.mock:
+            mock_self_check(run_dir)
         run_dirs.append(run_dir)
 
     if len(run_dirs) > 1:
