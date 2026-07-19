@@ -8,7 +8,8 @@
    "found_in": [
     "A",
     "B",
-    "C"
+    "C",
+    "D"
    ]
   },
   {
@@ -19,7 +20,8 @@
    "found_in": [
     "A",
     "B",
-    "C"
+    "C",
+    "D"
    ]
   },
   {
@@ -30,7 +32,8 @@
    "found_in": [
     "A",
     "B",
-    "C"
+    "C",
+    "D"
    ]
   },
   {
@@ -51,7 +54,8 @@
    "short_claim": "Scarcity forces justification of remaining meetings",
    "found_in": [
     "A",
-    "B"
+    "B",
+    "D"
    ]
   },
   {
@@ -76,6 +80,16 @@
   },
   {
    "id": "U-8",
+   "theme": "invisible channels",
+   "side": "AGAINST",
+   "short_claim": "Coordination shifts into untracked chat and calls",
+   "found_in": [
+    "C",
+    "D"
+   ]
+  },
+  {
+   "id": "U-9",
    "theme": "price mechanism",
    "side": "REFRAME",
    "short_claim": "Meeting budgets dominate a quantity ban",
@@ -85,7 +99,7 @@
    ]
   },
   {
-   "id": "U-9",
+   "id": "U-10",
    "theme": "enforcement",
    "side": "FOR",
    "short_claim": "Default-decline tooling makes ban self-enforcing",
@@ -94,7 +108,7 @@
    ]
   },
   {
-   "id": "U-10",
+   "id": "U-11",
    "theme": "regulation",
    "side": "AGAINST",
    "short_claim": "Regulated roles may mandate same-day availability",
@@ -103,7 +117,7 @@
    ]
   },
   {
-   "id": "U-11",
+   "id": "U-12",
    "theme": "timezone fairness",
    "side": "FOR",
    "short_claim": "Fixed quiet day is fairer across time zones",
@@ -112,22 +126,22 @@
    ]
   },
   {
-   "id": "U-12",
-   "theme": "representation",
+   "id": "U-13",
+   "theme": "remote composition",
    "side": "REFRAME",
-   "short_claim": "Affected outsiders deserve a seat in the decision",
+   "short_claim": "Effect depends on remote-versus-office composition",
    "found_in": [
-    "C"
+    "D"
    ]
   },
   {
-   "id": "U-13",
+   "id": "U-14",
    "theme": "incident response",
    "side": "AGAINST",
    "short_claim": "Incidents need same-day synchronous coordination",
    "found_in": [
     "B",
-    "C"
+    "D"
    ]
   }
  ],
@@ -137,22 +151,29 @@
    "unique": 1,
    "suspect": 1,
    "depth": 3,
-   "notes": "Suspect: one entry cites vendor override-rate data 'below 20 percent' with no identifiable source \u2014 treated as invented statistic. Defeaters are mostly specific and falsifiable."
+   "notes": "Suspect: one entry cites vendor override-rate data 'below 20 percent' with no identifiable source \u2014 treated as an invented statistic. Defeaters otherwise specific and falsifiable."
   },
   "B": {
    "distinct": 10,
    "unique": 1,
    "suspect": 0,
    "depth": 4,
-   "notes": "No invented facts detected. Defeaters are consistently specific, several naming the exact dataset that would falsify the claim. The convergence tags aid auditability."
+   "notes": "No invented facts detected. Defeaters consistently name the dataset that would falsify the claim; convergence tags aid auditability."
   },
   "C": {
-   "distinct": 9,
-   "unique": 2,
+   "distinct": 8,
+   "unique": 1,
    "suspect": 2,
    "depth": 2,
-   "notes": "Suspect: one entry asserts 'the only controlled study' without naming it; another claims a 15 percent reduction figure with no source. Several defeaters are generic restatements rather than falsifiable facts."
+   "notes": "Suspect: one entry asserts 'the only controlled study' without naming it; another claims a 15 percent reduction figure with no source. Several defeaters are generic restatements."
+  },
+  "D": {
+   "distinct": 7,
+   "unique": 1,
+   "suspect": 1,
+   "depth": 3,
+   "notes": "Suspect: one entry claims administrative costs 'routinely exceed projections' as if measured, with no source. Voice is notably homogeneous across roles; defeaters adequate but repetitive."
   }
  },
- "verdict": "System B produced the broadest and best-grounded map, with the most distinct arguments and the most falsifiable defeaters. System A is close behind and notably strong on enforcement practicalities, at the cost of one unsourced statistic. System C covers the widest rhetorical range but grounds its claims least carefully, with two entries relying on invented or unverifiable figures."
+ "verdict": "System B produced the broadest and best-grounded map, with the most distinct arguments and the most falsifiable defeaters. Systems A and D cover similar ground with one unsourced statistic each, D reading as a single voice wearing different hats. System C spans the widest rhetorical range but grounds its claims least carefully."
 }

@@ -5,7 +5,11 @@
 # with your provider API keys exported to see what is available, then
 # replace every SET_ME below.
 #
-# Executor for Anthropic calls:
+# Executor for Anthropic calls.
+# For benchmark runs you intend to quote, prefer `api`: the claude_cli
+# executor injects a small machine-local preamble that is not captured in
+# the saved p-*.txt prompts (calls run from an empty directory with MCP
+# disabled to minimise it, and the report carries a caveat).
 #   claude_cli (default) — shells out to `claude -p` on your existing
 #                          Claude Code auth; exact usage from the CLI JSON.
 #                          NOTE: temperature is not settable through the CLI
@@ -35,7 +39,10 @@ roster:
 # One editor model for BOTH arms (synthesis, gap critic, debate-synth).
 editor: {provider: anthropic, model: SET_ME}
 
-# Arm 3 solo control: one Anthropic model, one call.
+# Arm 3 solo control: one Anthropic model, one call. The same model also
+# plays every role in ARM 4 (persona control: single model, arm-2 topology),
+# which disentangles vendor diversity from topology — keep it a single knob
+# so arm 3 vs arm 4 stays a minimal pair.
 solo: {provider: anthropic, model: SET_ME}
 
 # The judge must come from a provider NOT in the generation roster.

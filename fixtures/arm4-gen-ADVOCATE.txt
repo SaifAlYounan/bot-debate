@@ -1,0 +1,47 @@
+ID: ADVOCATE-1
+SIDE: FOR
+CLAIM: A protected Friday preserves the long uninterrupted blocks knowledge work needs.
+REASONING: One guaranteed meeting-free day removes the scheduling fragmentation that destroys deep work. The gain compounds as planning adapts to the fixed quiet day.
+DEFEATER: Evidence that fragmented calendars do not reduce measured output for most roles.
+
+ID: ADVOCATE-2
+SIDE: FOR
+CLAIM: Constraining meeting supply forces organisers to justify every remaining slot.
+REASONING: Scarcity prunes recurring low-value meetings first.
+DEFEATER: Calendar data showing meetings migrate wholesale to Monday-Thursday instead.
+
+ID: ADVOCATE-3
+SIDE: FOR
+CLAIM: The ban accelerates written, searchable decision records.
+REASONING: When synchronous discussion is unavailable, decisions move to documents that persist and can be audited.
+DEFEATER: If decision quality measurably drops without live discussion, async records are a poor substitute.
+
+ID: ADVOCATE-4
+SIDE: FOR
+CLAIM: A fixed quiet day is fairer across time zones than rolling synchronous load.
+REASONING: Every sync burdens someone's evening in a global team; one protected day spares all equally.
+DEFEATER: Timezone pain concentrates on few staff who might prefer a different remedy.
+
+ID: ADVOCATE-5
+SIDE: FOR
+CLAIM: Default-decline calendar tooling makes the rule nearly self-enforcing.
+REASONING: Software can decline Friday invites automatically with an override log, so enforcement cost falls on tooling.
+DEFEATER: If override rates exceed half of attempted bookings, the default is theatre.
+
+ID: ADVOCATE-6
+SIDE: FOR
+CLAIM: The ban is a cheap commitment device against chronic over-booking.
+REASONING: Organisations systematically over-schedule future weeks; a standing rule pre-commits against a bias everyone acknowledges.
+DEFEATER: Evidence that scheduling discipline is achievable with defaults alone.
+
+ID: ADVOCATE-7
+SIDE: FOR
+CLAIM: A specialist in operations would add: one dark day simplifies room and bridge capacity planning.
+REASONING: Peak demand flattens when a day leaves contention.
+DEFEATER: If demand shifts and raises the Monday-Thursday peak, planning gets harder.
+
+ID: ADVOCATE-8
+SIDE: FOR
+CLAIM: Frontline staff gain a predictable day fully available to the people they serve.
+REASONING: Support staff are double-booked between queues and internal syncs today.
+DEFEATER: Ticket data showing Friday internal meetings rarely pull support staff away.

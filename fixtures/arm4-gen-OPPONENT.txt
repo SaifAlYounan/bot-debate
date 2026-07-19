@@ -1,0 +1,47 @@
+ID: OPPONENT-1
+SIDE: AGAINST
+CLAIM: Coordination demand compresses into the remaining four days.
+REASONING: Total demand is unchanged; the same hours squeezed into busier days deepen fragmentation where the week is worst.
+DEFEATER: Calendar data from firms with the policy showing total meeting hours fell.
+
+ID: OPPONENT-2
+SIDE: AGAINST
+CLAIM: Incidents and urgent decisions do not respect a calendar ban.
+REASONING: Escalations need same-day synchronous coordination; the ban is violated immediately or delays response.
+DEFEATER: An explicit incident-response exemption collapses the objection.
+
+ID: OPPONENT-3
+SIDE: AGAINST
+CLAIM: External counterparties lose access one day in five.
+REASONING: Customers, partners and candidates schedule on their own calendars; a hard internal ban forces staff to break policy or lose business.
+DEFEATER: An exemption for external-facing meetings removes the harm.
+
+ID: OPPONENT-4
+SIDE: AGAINST
+CLAIM: A blanket ban trades coordination-heavy functions' output for focus-heavy comfort.
+REASONING: Sales, support and program management run on synchronous contact and pay the price of a uniform rule.
+DEFEATER: If per-function exemptions are allowed, the policy is no longer a ban.
+
+ID: OPPONENT-5
+SIDE: AGAINST
+CLAIM: Coordination shifts into invisible channels that no calendar metric sees.
+REASONING: Chat threads and ad-hoc calls replace scheduled meetings; reported hours fall while interruption load rises.
+DEFEATER: Interruption telemetry showing no rise in unscheduled contact on banned days.
+
+ID: OPPONENT-6
+SIDE: AGAINST
+CLAIM: Junior staff lose scheduled access to seniors first.
+REASONING: Mentoring and unblocking happen in booked slots; cutting a day of slots cuts the least powerful people's access.
+DEFEATER: Evidence that mentoring reliably reschedules rather than disappears.
+
+ID: OPPONENT-7
+SIDE: AGAINST
+CLAIM: The ban treats a symptom of bad meeting culture that will resurface on four days.
+REASONING: Low-value meetings come from unclear owners and agendas, which prohibition of a day does not touch.
+DEFEATER: If the ban measurably reduces total low-value hours, symptom relief is still relief.
+
+ID: OPPONENT-8
+SIDE: AGAINST
+CLAIM: A specialist in HR would add: enforcement creates recurring policy-conflict overhead.
+REASONING: Exception requests and disputes are ongoing labour that projections routinely understate.
+DEFEATER: Fully automated calendar enforcement drives the recurring cost toward zero.

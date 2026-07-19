@@ -15,12 +15,14 @@ import sys
 
 import yaml
 
-ARMS = ["arm1", "arm2", "arm3"]
+ARMS = ["arm1", "arm2", "arm3", "arm4"]
 ARM_TITLES = {
     "arm1": "ARM 1 — DEBATE (shared transcript)",
     "arm2": "ARM 2 — EXAM + EXAMINER (isolated)",
     "arm3": "ARM 3 — SOLO CONTROL",
+    "arm4": "ARM 4 — PERSONA CONTROL (single model, exam topology)",
 }
+ALL_LETTERS = {"A", "B", "C", "D"}
 
 
 # ---------------------------------------------------------------------------
@@ -70,11 +72,14 @@ def compute_metrics(run_dir):
         "arm2": walls.get("gen", 0) + walls.get("arm2_synth", 0)
                 + walls.get("arm2_critic", 0),
         "arm3": walls.get("arm3", 0),
+        "arm4": walls.get("arm4_gen", 0) + walls.get("arm4_synth", 0)
+                + walls.get("arm4_critic", 0),
     }
     arm_rows = {
         "arm1": [c for c in calls if c["arm"] in ("gen", "arm1")],
         "arm2": [c for c in calls if c["arm"] in ("gen", "arm2")],
         "arm3": [c for c in calls if c["arm"] == "arm3"],
+        "arm4": [c for c in calls if c["arm"] == "arm4"],
     }
     judge_rows = [c for c in calls if c["arm"] == "judge"]
 
@@ -86,7 +91,7 @@ def compute_metrics(run_dir):
     union = judge["union"] if judge else []
     m["union"] = union
     m["core_ids"] = [u["id"] for u in union
-                     if set(u["found_in"]) == {"A", "B", "C"}]
+                     if set(u["found_in"]) == ALL_LETTERS]
 
     for arm in ARMS:
         rows = arm_rows[arm]
@@ -318,7 +323,7 @@ def matrix_html(m):
     for theme in order:
         for u in by_theme[theme]:
             fi = set(u["found_in"])
-            core = fi == {"A", "B", "C"}
+            core = fi == ALL_LETTERS
             uniq = len(fi) == 1
             out.append("<tr%s>" % (" class='core'" if core else ""))
             out.append("<td class='id'>%s%s</td><td>%s</td><td>%s</td>"
@@ -335,7 +340,7 @@ def matrix_html(m):
                     out.append("<td class='missed'>—</td>")
             out.append("</tr>")
     out.append("</table>")
-    out.append("<p class='meta'>banded rows are CORE (found by all three "
+    out.append("<p class='meta'>banded rows are CORE (found by all four "
                "systems: %d of %d). Accented ● marks a find unique to one "
                "system.</p>" % (len(m["core_ids"]), len(m["union"])))
     return "".join(out)
@@ -395,15 +400,23 @@ def render_run_report(run_dir):
 
     caveats = [
         "A single run is noise: treat nothing here as significant below "
-        "3 runs (this report covers 1 run%s)." % (
-            "" if not meta.get("runs_note") else meta["runs_note"]),
+        "3 runs (this report covers 1 run).",
         "prices as of %s, verify before quoting externally."
         % esc(cfg.get("prices", {}).get("as_of", "UNKNOWN")),
         "Paired design: round-1 generations were produced once and reused "
         "as Arm 1 round 1 and Arm 2's generation phase; their tokens and "
         "cost are attributed to BOTH arms, so arm costs do not sum to "
-        "total spend ($%s)." % _fmt(m["total_cost_usd"], "usd").lstrip("$"),
+        "total spend ($%s). Arm 4 (persona control) generated its own "
+        "single-model round and is not sampling-paired with arms 1/2."
+        % _fmt(m["total_cost_usd"], "usd").lstrip("$"),
     ]
+    if cfg.get("executor") == "claude_cli":
+        caveats.append(
+            "Anthropic calls used the claude_cli executor: the CLI injects "
+            "a small machine-local preamble that is NOT captured in the "
+            "saved p-*.txt prompts (calls run from an empty directory with "
+            "MCP disabled to minimise it). For strictly reproducible, "
+            "quotable prompts use executor: api.")
     for w in warnings:
         if "SELF-PREFERENCE" in w:
             caveats.append(esc(w))
@@ -426,7 +439,10 @@ def render_run_report(run_dir):
 roster (identical for arms 1 and 2): {roster}<br>
 editor: {editor} · solo: {solo} · judge: {judge_m}<br>
 note: paired round-1 — the shared GEN phase is Arm 1 round 1 AND Arm 2's
-generation phase; its cost is counted into both arms.</p>
+generation phase; its cost is counted into both arms. Arm 4 is the persona
+control: the solo model plays every role through the exam topology, so
+arm4 vs arm3 isolates persona-splitting and arm2 vs arm4 isolates vendor
+diversity.</p>
 {verdict}
 <h2>Scoreboard</h2>
 {scoreboard}
