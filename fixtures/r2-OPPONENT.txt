@@ -1,0 +1,14 @@
+REBUT A-3: The hygiene effect claims scarcity improves meeting quality, but scarcity of days is not scarcity of slots; four days still offer more slots than most teams use, so no justification pressure appears.
+REBUT D-4: The public-good framing fails because focus time is excludable — individuals can and do block their own calendars — so no collective rule is required.
+
+ID: OPPONENT-9
+SIDE: AGAINST
+CLAIM: The ban shifts real coordination into invisible channels.
+REASONING: Chat threads and ad-hoc calls replace scheduled meetings without appearing in any calendar metric. Reported meeting hours fall while actual interruption load rises.
+DEFEATER: Interruption telemetry showing no rise in unscheduled synchronous contact on banned days.
+
+ID: OPPONENT-10
+SIDE: AGAINST
+CLAIM: One-size-fits-all timing ignores that Friday is some functions' peak day.
+REASONING: Finance closes books, support sees pre-weekend spikes, sales pushes end-of-quarter deals. For them Friday coordination is the most valuable of the week.
+DEFEATER: Workload data showing no function in this office peaks on Friday.

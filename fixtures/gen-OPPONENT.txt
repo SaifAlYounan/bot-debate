@@ -1,0 +1,47 @@
+ID: OPPONENT-1
+SIDE: AGAINST
+CLAIM: Incidents and urgent decisions do not respect a calendar ban.
+REASONING: Escalations need synchronous coordination the day they happen. A ban either gets violated immediately or delays response.
+DEFEATER: If the policy explicitly exempts incident response, this objection collapses.
+
+ID: OPPONENT-2
+SIDE: AGAINST
+CLAIM: Meetings compress into Monday-Thursday and make those days worse.
+REASONING: Total coordination demand is unchanged. The same hours squeezed into four days deepen fragmentation exactly where the week is busiest.
+DEFEATER: Calendar data from firms with the policy showing total meeting hours actually fell.
+
+ID: OPPONENT-3
+SIDE: AGAINST
+CLAIM: A blanket ban punishes coordination-heavy teams to help focus-heavy ones.
+REASONING: Sales, support and program management run on synchronous contact. One rule for all trades their effectiveness for engineers' comfort.
+DEFEATER: If exemptions per function are allowed, the policy is no longer a ban and the cost disappears.
+
+ID: OPPONENT-4
+SIDE: AGAINST
+CLAIM: Junior staff lose scheduled access to seniors.
+REASONING: Mentoring, reviews and unblocking happen in booked slots. Cutting a day of slots cuts the least powerful people's access first.
+DEFEATER: Evidence that mentoring simply reschedules rather than disappears.
+
+ID: OPPONENT-5
+SIDE: AGAINST
+CLAIM: Client-facing roles cannot refuse external counterparties.
+REASONING: Customers and partners schedule on their own calendars. A hard internal ban forces staff to break policy or lose business.
+DEFEATER: A carve-out for external meetings removes this harm.
+
+ID: OPPONENT-6
+SIDE: AGAINST
+CLAIM: The ban attacks a symptom, not the disease of bad meeting culture.
+REASONING: Low-value meetings come from unclear owners and agendas. They will survive on four days a week until the real cause is fixed.
+DEFEATER: If the ban measurably reduces total low-value meeting hours, symptom relief is still real relief.
+
+ID: OPPONENT-7
+SIDE: AGAINST
+CLAIM: Top-down bans erode team autonomy over their own ways of working.
+REASONING: Teams closest to the work best judge when to meet. Central mandates signal distrust and invite malicious compliance.
+DEFEATER: If teams were already failing to protect focus time, autonomy was not producing the outcome it is meant to justify.
+
+ID: OPPONENT-8
+SIDE: AGAINST
+CLAIM: A specialist in HR would add: enforcement creates a new class of petty policy conflict.
+REASONING: Someone must police violations and adjudicate exceptions. That administrative friction is a recurring cost the ban's advocates never book.
+DEFEATER: If enforcement is light-touch social convention rather than formal policy, the friction is negligible.

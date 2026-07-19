@@ -1,0 +1,60 @@
+# argbench configuration
+#
+# Model IDs drift; none are guessed here. Run
+#     python3 argbench.py --list-models
+# with your provider API keys exported to see what is available, then
+# replace every SET_ME below.
+#
+# Executor for Anthropic calls:
+#   claude_cli (default) — shells out to `claude -p` on your existing
+#                          Claude Code auth; exact usage from the CLI JSON.
+#                          NOTE: temperature is not settable through the CLI
+#                          (recorded as null); max_tokens is enforced via
+#                          CLAUDE_CODE_MAX_OUTPUT_TOKENS and the CLI FAILS a
+#                          call that would exceed it rather than truncating.
+#   api                  — direct HTTPS to the Anthropic Messages API,
+#                          requires ANTHROPIC_API_KEY.
+executor: claude_cli
+
+# Roles are fixed: ADVOCATE, OPPONENT, SKEPTIC, LENS_A, LENS_B
+# (lens descriptions are supplied at intake). The roster is identical for
+# arms 1 and 2 by construction. If fewer providers than roles are usable
+# (missing key or SET_ME), models are assigned round-robin with a warning.
+roster:
+  - {role: ADVOCATE, provider: anthropic, model: SET_ME}
+  - {role: OPPONENT, provider: openai,    model: SET_ME}
+  - {role: SKEPTIC,  provider: google,    model: SET_ME}
+  - {role: LENS_A,   provider: deepseek,  model: SET_ME}
+  - {role: LENS_B,   provider: mistral,   model: SET_ME}
+
+# One editor model for BOTH arms (synthesis, gap critic, debate-synth).
+editor: {provider: anthropic, model: SET_ME}
+
+# Arm 3 solo control: one Anthropic model, one call.
+solo: {provider: anthropic, model: SET_ME}
+
+# The judge must come from a provider NOT in the generation roster.
+# If it overlaps, argbench refuses to run without --force and the report
+# carries a self-preference caveat.
+judge: {provider: xai, model: SET_ME}
+
+params:
+  gen_temperature: 0.7
+  editor_temperature: 0.2
+  judge_temperature: 0.0
+  gen_max_tokens: 4000
+  editor_max_tokens: 8000
+  judge_max_tokens: 8000
+
+# Per-model prices in USD per million tokens. Used for all dollar figures.
+# Keep as_of current; the report footer prints
+# "prices as of <date>, verify before quoting externally".
+prices:
+  as_of: SET_ME
+  # example:
+  # some-model-id: {input_per_mtok: 3.00, output_per_mtok: 15.00}
+
+retries:
+  max: 3            # exponential backoff with jitter on 429, 5xx, timeouts
+
+runs: 1

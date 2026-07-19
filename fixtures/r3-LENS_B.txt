@@ -1,0 +1,8 @@
+REBUT A-11: The scoped ban still needs an externally published rule — partners cannot parse 'internal recurring only' from outside — so the outsider-communication problem survives the refinement.
+DEFEND LENS_B-9: No participant produced evidence that external counterparties can reschedule as easily as internal staff; the asymmetry stands.
+
+ID: LENS_B-11
+SIDE: FOR
+CLAIM: Whatever is decided, publish the meeting policy where outsiders can see it.
+REASONING: Every external harm in this transcript is mediated by surprise. A published policy converts each harm into a plannable constraint.
+DEFEATER: Evidence that partners do not read or act on published vendor availability policies.

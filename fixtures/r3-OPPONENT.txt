@@ -1,0 +1,8 @@
+REBUT A-11: The scoped-ban refinement quietly abandons the proposition as stated; 'ban meetings on Fridays' and 'trim internal recurring slots' are different policies and the house should not get credit for the second while defending the first.
+DEFEND OPPONENT-2: The 15 percent reduction figure cited against compression comes from self-selected adopters; in mandated settings the only controlled study available shows near-full migration.
+
+ID: OPPONENT-11
+SIDE: AGAINST
+CLAIM: Policy churn itself has a cost the FOR side never books.
+REASONING: Adopting, litigating exceptions, and probably repealing the ban consumes leadership attention and credibility. That cost is real even if the ban is eventually reversed.
+DEFEATER: Evidence that comparable workplace policies were adopted and stabilised with negligible churn cost.

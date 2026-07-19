@@ -1,0 +1,158 @@
+{
+ "union": [
+  {
+   "id": "U-1",
+   "theme": "deep work",
+   "side": "FOR",
+   "short_claim": "Protected day preserves deep work from fragmentation",
+   "found_in": [
+    "A",
+    "B",
+    "C"
+   ]
+  },
+  {
+   "id": "U-2",
+   "theme": "compression",
+   "side": "AGAINST",
+   "short_claim": "Meetings compress into the other four days",
+   "found_in": [
+    "A",
+    "B",
+    "C"
+   ]
+  },
+  {
+   "id": "U-3",
+   "theme": "external parties",
+   "side": "AGAINST",
+   "short_claim": "Customers and partners lose access one day in five",
+   "found_in": [
+    "A",
+    "B",
+    "C"
+   ]
+  },
+  {
+   "id": "U-4",
+   "theme": "decision procedure",
+   "side": "REFRAME",
+   "short_claim": "Decide by time-boxed pre-registered pilot",
+   "found_in": [
+    "A",
+    "B",
+    "C"
+   ]
+  },
+  {
+   "id": "U-5",
+   "theme": "meeting hygiene",
+   "side": "FOR",
+   "short_claim": "Scarcity forces justification of remaining meetings",
+   "found_in": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "id": "U-6",
+   "theme": "async culture",
+   "side": "FOR",
+   "short_claim": "Ban pushes decisions into written form",
+   "found_in": [
+    "A",
+    "B"
+   ]
+  },
+  {
+   "id": "U-7",
+   "theme": "function heterogeneity",
+   "side": "AGAINST",
+   "short_claim": "Uniform rule punishes coordination-heavy functions",
+   "found_in": [
+    "B",
+    "C"
+   ]
+  },
+  {
+   "id": "U-8",
+   "theme": "price mechanism",
+   "side": "REFRAME",
+   "short_claim": "Meeting budgets dominate a quantity ban",
+   "found_in": [
+    "A",
+    "C"
+   ]
+  },
+  {
+   "id": "U-9",
+   "theme": "enforcement",
+   "side": "FOR",
+   "short_claim": "Default-decline tooling makes ban self-enforcing",
+   "found_in": [
+    "A"
+   ]
+  },
+  {
+   "id": "U-10",
+   "theme": "regulation",
+   "side": "AGAINST",
+   "short_claim": "Regulated roles may mandate same-day availability",
+   "found_in": [
+    "B"
+   ]
+  },
+  {
+   "id": "U-11",
+   "theme": "timezone fairness",
+   "side": "FOR",
+   "short_claim": "Fixed quiet day is fairer across time zones",
+   "found_in": [
+    "C"
+   ]
+  },
+  {
+   "id": "U-12",
+   "theme": "representation",
+   "side": "REFRAME",
+   "short_claim": "Affected outsiders deserve a seat in the decision",
+   "found_in": [
+    "C"
+   ]
+  },
+  {
+   "id": "U-13",
+   "theme": "incident response",
+   "side": "AGAINST",
+   "short_claim": "Incidents need same-day synchronous coordination",
+   "found_in": [
+    "B",
+    "C"
+   ]
+  }
+ ],
+ "per_system": {
+  "A": {
+   "distinct": 8,
+   "unique": 1,
+   "suspect": 1,
+   "depth": 3,
+   "notes": "Suspect: one entry cites vendor override-rate data 'below 20 percent' with no identifiable source \u2014 treated as invented statistic. Defeaters are mostly specific and falsifiable."
+  },
+  "B": {
+   "distinct": 10,
+   "unique": 1,
+   "suspect": 0,
+   "depth": 4,
+   "notes": "No invented facts detected. Defeaters are consistently specific, several naming the exact dataset that would falsify the claim. The convergence tags aid auditability."
+  },
+  "C": {
+   "distinct": 9,
+   "unique": 2,
+   "suspect": 2,
+   "depth": 2,
+   "notes": "Suspect: one entry asserts 'the only controlled study' without naming it; another claims a 15 percent reduction figure with no source. Several defeaters are generic restatements rather than falsifiable facts."
+  }
+ },
+ "verdict": "System B produced the broadest and best-grounded map, with the most distinct arguments and the most falsifiable defeaters. System A is close behind and notably strong on enforcement practicalities, at the cost of one unsourced statistic. System C covers the widest rhetorical range but grounds its claims least carefully, with two entries relying on invented or unverifiable figures."
+}
