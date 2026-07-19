@@ -35,7 +35,7 @@ SIDE: FOR
 CLAIM: A fixed quiet day is fairer across time zones and more predictable for outsiders and families.
 REASONING: Rolling syncs burden someone's evening every time; a published dark day spares all equally and lets third parties plan.
 DEFEATER: Partner surveys preferring ad-hoc availability over a published dark day.
-CONV: 3
+CONV: 2
 SOURCES: ADVOCATE-4, LENS_B-4, LENS_B-5
 
 ID: M-6
@@ -51,7 +51,7 @@ SIDE: AGAINST
 CLAIM: External counterparties bear unpriced costs with the least scheduling power.
 REASONING: Customers, partners, candidates and contractors lose access one day in five and cannot reshuffle around an internal rule.
 DEFEATER: An exemption for external-facing meetings removes most of the harm.
-CONV: 3
+CONV: 2
 SOURCES: OPPONENT-3, LENS_B-1, LENS_B-2, LENS_B-3, LENS_B-8
 
 ID: M-8
@@ -83,7 +83,7 @@ SIDE: REFRAME
 CLAIM: The question is ill-posed until 'meeting' is defined and the graded design space is on the table.
 REASONING: Bans, budgets, short defaults and no-meeting mornings are different instruments; a price mechanism can discriminate on value where a quantity ban cannot.
 DEFEATER: Evidence the binary ban beats every graded alternative on the same metric.
-CONV: 3
+CONV: 2
 SOURCES: SKEPTIC-1, SKEPTIC-2, LENS_A-2
 
 ID: M-12
@@ -91,5 +91,5 @@ SIDE: REFRAME
 CLAIM: Decide by time-boxed pilot with pre-registered metrics, at the right organisational level.
 REASONING: The empirical disputes are answerable by a cheap reversible trial, and the office may be the wrong decision level entirely.
 DEFEATER: If pilot effects are contaminated or irreversible, the trial answers nothing.
-CONV: 2
+CONV: 1
 SOURCES: SKEPTIC-5, SKEPTIC-6

@@ -113,7 +113,7 @@ Other flags: `--runs N` (each run in its own directory plus an aggregate
   `null`), and the CLI does **not** truncate at an output cap — a call that
   hits `max_tokens` (enforced via `CLAUDE_CODE_MAX_OUTPUT_TOKENS`) is
   detected through `usage.iterations` and marked FAILED rather than silently
-  saving a fragment. Set generous caps with this executor.
+  saving a fragment. Rule of thumb: set `max_tokens` 30–50% above what you would use with the direct API — a cap-hit costs a full failed call, not a truncated reply.
 - **`api`**: direct HTTPS to the Anthropic Messages API using
   `ANTHROPIC_API_KEY`, with normal truncation semantics.
 
@@ -196,9 +196,9 @@ result externally:
    empty directory with MCP disabled, and the report is stamped with a
    caveat) — convenient, but not strictly reproducible across machines.
 4. **Cap sizing under `claude_cli`.** The CLI does not truncate at
-   `max_tokens` — a cap hit FAILS the call and wastes a full call cycle. Set
-   caps 30–50% larger than the output you expect; use `executor: api` if you
-   need true truncation semantics.
+   `max_tokens` — a cap hit FAILS the call and wastes a full call cycle.
+   Rule of thumb: set `max_tokens` 30–50% above what you would use with the direct API — a cap-hit costs a full failed call, not a truncated reply.
+   Use `executor: api` if you need true truncation semantics.
 5. **Re-verify the CLI contract on your machine** (it drifts between
    versions):
    `claude --help | grep -E 'tools|session|system-prompt|strict-mcp'`
@@ -243,3 +243,13 @@ mock roster), so every mock report carries the self-preference caveat — useful
 the accounting and report logic without spending anything. The canned judge
 JSON deliberately contains one arithmetic error to exercise the
 recompute-and-prefer path.
+
+Every `--mock` run ends with a self-check that fails the run loudly unless:
+`judge/judge.json` exists on disk and still passes the strict schema; the
+judge's claimed arithmetic is preserved next to the recomputed values
+(`distinct_claimed` / `unique_claimed`); at least one suspect entry was
+counted (locking the invented-facts fixtures); and arm 1's final list
+carries its `GRAVEYARD` (locking the debate-kill fixtures). The audit-trail
+and failure-mode claims above are therefore machine-verified on every mock
+run, not just documented. See `fixtures/README.md` for what each canned
+fixture contains, including the deliberately planted defects.
